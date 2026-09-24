@@ -56,8 +56,23 @@ streamlit run app.py
   Einfach den Namen eintippen und mit Enter bestätigen – dann sucht die App bei Yahoo Finance. Du siehst die
   Empfehlung im Klartext („Was heißt das für dich?“), wichtige Kennzahlen, Chart mit Kursziel/Stop-Loss/Datum,
   die Begründung, die sieben Faktoren, den Score-Verlauf und einen Rückblick auf die frühere Trefferquote.
-- **📖 Lexikon:** Alle Begriffe (Volatilität, RSI, Stop-Loss, ATR …) einfach erklärt und durchsuchbar. Dieselben
-  Erklärungen erscheinen als Tooltip, wenn du über ⓘ-Symbole oder unterstrichene Begriffe fährst.
+  Die Detailansicht hat vier Bereiche:
+  - **🧾 Überblick:** Empfehlung, wichtigste Zahlen, Kurschart mit Prognose.
+  - **📊 Kennzahlen:** KGV, erwartetes KGV, PEG, KBV, KUV, EV/EBITDA, **Verschuldungsgrad (Debt-to-Equity)**,
+    Liquidität, Eigenkapitalrendite, Nettomarge, Umsatz- und Gewinnwachstum, Dividendenrendite,
+    Ausschüttungsquote, Beta, Börsenwert und Analysten-Kursziel – jeweils mit Ampel und Faustregel.
+  - **🧭 Chart-Leser:** Die App liest den Chart und listet die Zeichen für steigende bzw. fallende Kurse
+    (Trend, 50/200-Tage-Linie, Golden/Death Cross, Unterstützung/Widerstand, Ausbruch, Volumen, RSI, MACD),
+    markiert sie im Chart und zeigt Volumen, RSI und MACD.
+  - **🔬 Hintergrund:** Begründung, die sieben Faktoren, Score-Verlauf und Rückblick.
+  Unter jedem Chart erklärt „📖 Wie lese ich diesen Chart?“ die Linien und Farben.
+- **📚 Chart-Schule:** 8 kurze Lektionen mit Beispiel-Charts – Charts lesen, Trends, 50/200-Tage-Linie,
+  Unterstützung & Ausbruch, Volumen, RSI, MACD und die Diagramme der App – plus eine Checkliste, woran man
+  steigende oder fallende Kurse erkennt.
+- **📖 Lexikon:** Alle Begriffe (Volatilität, KGV, Debt-to-Equity, RSI, Stop-Loss …) einfach erklärt und
+  durchsuchbar. Dieselben Erklärungen erscheinen als Tooltip, wenn du über ⓘ-Symbole oder unterstrichene
+  Begriffe fährst.
+- Der Schalter „📊 Kennzahlen in der Übersicht“ (links) ergänzt die Tabelle um KGV, KBV und Debt-to-Equity.
 - Hell- und Dunkelmodus folgen der Einstellung deines Systems (oder dem Menü ⋮ → Settings).
 - Ohne Internet: Datenquelle „Demo-Daten (offline)“ wählen (simulierte Kurse zum Ausprobieren).
 
@@ -87,6 +102,9 @@ Ticker im Yahoo-Finance-Format: deutsche Aktien mit `.DE` (z. B. `SAP.DE`, `BMW.
    Kursziel = vorsichtig (halbiert) fortgeschriebener 6-Monats-Trend bis zum Verkaufsdatum, mindestens Kurs + 3 × ATR.
 5. **Preis-Schwellen:** Die App rechnet durch, bei welchem Kurs (erreicht innerhalb einer Woche) der Score die
    Kauf- bzw. Verkaufsschwelle kreuzen würde.
+6. **Kennzahlen** (Fundamentaldaten von Yahoo Finance) fließen *nicht* in den Score ein – sie ergänzen die
+   Chart-Analyse. Die Ampeln folgen allgemeinen Faustregeln; was „teuer“ ist, hängt auch von der Branche ab.
+   Yahoo liefert Debt-to-Equity in Prozent (150 = 1,5), die App rechnet das in das übliche Verhältnis um.
 
 Details stehen auch im Tab „⚙️ So funktioniert's“ der App.
 
@@ -102,6 +120,9 @@ stock_analyzer/
   market.py                    Analyse einer ganzen Aktienliste + Marktumfeld
   backtest.py                  Rückblick auf die historische Signalqualität
   charts.py                    Diagramme
+  fundamentals.py              Kennzahlen (KGV, KBV, Debt-to-Equity …) und ihre Ampel-Bewertung
+  chart_reader.py              Chart-Leser: erkennt Zeichen für steigende/fallende Kurse
+  chart_school.py              Lektionen der Chart-Schule mit Beispieldaten
   ui.py                        Oberflächen-Bausteine (Karten, Score-Skala, Tooltips, CSS)
   glossary.py                  Lexikon: Erklärungen für alle Begriffe
   universes.py                 Aktienlisten, Katalog und Namenssuche

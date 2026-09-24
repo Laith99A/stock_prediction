@@ -3,7 +3,10 @@ from __future__ import annotations
 
 from html import escape
 
-from .formatting import LABEL_DE, fmt_date, fmt_days, fmt_pct, fmt_price, fmt_score
+from .chart_reader import ChartReading
+from .chart_school import CHECKLIST_DOWN, CHECKLIST_UP, Lesson
+from .formatting import LABEL_DE, fmt_date, fmt_days, fmt_num, fmt_pct, fmt_price, fmt_score
+from .fundamentals import GroupSummary, Metric
 from .glossary import TERMS
 from .recommendation import Recommendation
 from .scoring import (
@@ -36,6 +39,8 @@ _LIGHT = """
   --h-bg:rgba(232,163,23,.17); --h-fg:#7a5200; --h-bd:rgba(232,163,23,.6);
   --s-bg:rgba(224,96,42,.13); --s-fg:#9a3412; --s-bd:rgba(224,96,42,.5);
   --ss-bg:#c62828; --ss-fg:#ffffff; --ss-bd:#c62828;
+  --r-bg:rgba(198,40,40,.11); --r-fg:#a61b1b; --r-bd:rgba(198,40,40,.4);
+  --i-bg:rgba(31,111,235,.10); --i-fg:#1b4fa8; --i-bd:rgba(31,111,235,.35);
 """
 _DARK = """
   --card-bg:#111a2b; --card-bd:#243049; --muted:#9aa6bd; --soft:#162238;
@@ -46,6 +51,8 @@ _DARK = """
   --h-bg:rgba(245,180,40,.15); --h-fg:#fcd34d; --h-bd:rgba(245,180,40,.5);
   --s-bg:rgba(249,115,22,.15); --s-fg:#fdba74; --s-bd:rgba(249,115,22,.5);
   --ss-bg:#d32f2f; --ss-fg:#ffffff; --ss-bd:#d32f2f;
+  --r-bg:rgba(248,113,113,.14); --r-fg:#fca5a5; --r-bd:rgba(248,113,113,.45);
+  --i-bg:rgba(96,165,250,.14); --i-fg:#93c5fd; --i-bd:rgba(96,165,250,.4);
 """
 
 _CSS = """
@@ -159,6 +166,46 @@ div[data-testid="stMetricValue"] { font-weight: 700; }
 .gcard .gs { font-weight: 600; margin: 4px 0 6px; }
 .gcard .gl { color: var(--muted); line-height: 1.5; }
 .gcard .ge { margin-top: 8px; font-size: .9rem; background: var(--soft); border-radius: 8px; padding: 6px 10px; }
+
+.pill { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 2px 10px; font-weight: 650;
+  font-size: .8rem; border: 1px solid transparent; white-space: nowrap; }
+.pill.p-good { background: var(--b-bg); color: var(--b-fg); border-color: var(--b-bd); }
+.pill.p-ok { background: var(--h-bg); color: var(--h-fg); border-color: var(--h-bd); }
+.pill.p-bad { background: var(--r-bg); color: var(--r-fg); border-color: var(--r-bd); }
+.pill.p-info { background: var(--i-bg); color: var(--i-fg); border-color: var(--i-bd); }
+.pill.p-na { background: var(--soft); color: var(--muted); }
+.fsum { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: 14px; }
+.fsum .g { font-size: .85rem; color: var(--muted); margin-bottom: 6px; }
+.fsum .v { font-size: 1.05rem; font-weight: 750; margin-bottom: 8px; }
+.mgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
+.mcard { display: flex; flex-direction: column; gap: 6px; padding: 14px 16px; }
+.mcard.hl { grid-column: span 2; border-width: 2px; }
+.mcard .mt { font-size: .86rem; color: var(--muted); font-weight: 600; }
+.mcard .mv { font-size: 1.55rem; font-weight: 800; line-height: 1.15; }
+.mcard .mr { font-size: .78rem; color: var(--muted); line-height: 1.35; }
+.gauge { position: relative; margin: 10px 0 18px; }
+.gauge .track { display: flex; gap: 3px; height: 10px; }
+.gauge .track div { border-radius: 4px; opacity: .8; }
+.gauge .mark { position: absolute; top: -5px; width: 4px; height: 20px; border-radius: 2px; background: currentColor;
+  transform: translateX(-50%); box-shadow: 0 0 0 2px var(--card-bg); }
+.gauge .ticks { position: relative; height: 14px; font-size: .72rem; color: var(--muted); margin-top: 4px; }
+.gauge .ticks span { position: absolute; transform: translateX(-50%); }
+.tally { display: flex; height: 12px; border-radius: 6px; overflow: hidden; gap: 3px; margin: 8px 0 4px; }
+.signs { list-style: none; padding: 0; margin: 0; }
+.signs li { display: flex; gap: 12px; align-items: flex-start; padding: 9px 0; border-bottom: 1px solid var(--card-bd);
+  line-height: 1.45; }
+.signs li:last-child { border-bottom: none; }
+.signs .num { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: .78rem; font-weight: 800; flex-shrink: 0; color: #fff; }
+.signs .dir { font-weight: 800; margin-right: 4px; }
+.lesson .intro { font-size: 1.02rem; margin: 2px 0 12px; line-height: 1.5; }
+.lesson ul { margin: 0 0 6px 0; padding-left: 20px; line-height: 1.55; }
+.updown { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-top: 10px; }
+.updown > div { border-radius: 12px; padding: 12px 14px; }
+.updown .u { background: var(--b-bg); border: 1px solid var(--b-bd); }
+.updown .d { background: var(--r-bg); border: 1px solid var(--r-bd); }
+.updown .h { font-weight: 800; margin-bottom: 6px; }
+.updown ul { margin: 0; padding-left: 18px; line-height: 1.5; }
 """
 
 
@@ -376,3 +423,90 @@ def steps(items: list[tuple[str, str]]) -> str:
     cards = "".join(f'<div class="card step"><div class="n">{i}</div><div class="h">{escape(h)}</div>'
                     f'<div class="muted">{body}</div></div>' for i, (h, body) in enumerate(items, 1))
     return f'<div class="steps">{cards}</div>'
+
+
+# ---------------------------------------------------------------------------- key figures
+
+STATUS_ICON = {"good": "●", "ok": "●", "bad": "●", "info": "ℹ", "na": "–"}
+
+
+def pill(status: str, text: str) -> str:
+    return f'<span class="pill p-{status}">{STATUS_ICON[status]} {escape(text)}</span>'
+
+
+def de_gauge(value: float | None) -> str:
+    """Scale 0 … 3 for debt-to-equity with green / amber / red zones."""
+    if value is None:
+        return ""
+    zones = [("#1f9d55", 1.0), ("#e8a317", 1.0), ("#c62828", 1.0)]
+    track = "".join(f'<div style="flex:{w};background:{c}"></div>' for c, w in zones)
+    pos = min(max(value, 0.0), 3.0) / 3.0 * 100
+    ticks = "".join(f'<span style="left:{v / 3 * 100}%">{fmt_num(v, 0) if v % 1 == 0 else fmt_num(v, 1)}'
+                    f'{"+" if v == 3 else ""}</span>' for v in (0, 1, 2, 3))
+    return (f'<div class="gauge"><div class="track">{track}</div><div class="mark" style="left:{pos}%"></div>'
+            f'<div class="ticks">{ticks}</div></div>')
+
+
+def metric_card(metric: Metric) -> str:
+    extra = de_gauge(metric.value) if metric.key == "verschuldungsgrad" and metric.status != "info" else ""
+    cls = " hl" if metric.highlight else ""
+    return (f'<div class="card mcard{cls}"><div class="mt">{escape(metric.title)}{info(metric.key)}</div>'
+            f'<div class="mv">{escape(metric.text)}</div>{extra}<div>{pill(metric.status, metric.verdict)}</div>'
+            f'<div class="mr">Faustregel: {escape(metric.rule)}</div></div>')
+
+
+def fundamentals_summary(summaries: list[GroupSummary]) -> str:
+    cards = "".join(f'<div class="card"><div class="g">{escape(g.group)}</div>'
+                    f'<div>{pill(g.status, g.verdict)}</div></div>' for g in summaries)
+    return f'<div class="fsum">{cards}</div>'
+
+
+def metric_grid(metrics: list[Metric]) -> str:
+    return f'<div class="mgrid">{"".join(metric_card(m) for m in metrics)}</div>'
+
+
+# ---------------------------------------------------------------------------- chart reading & school
+
+_DIR = {1: ("#1f9d55", "▲"), -1: ("#c62828", "▼"), 0: ("#8a93a3", "•")}
+
+
+def reading_summary(reading: ChartReading) -> str:
+    up, down = reading.bullish, reading.bearish
+    neutral = len(reading.signs) - up - down
+    bar = "".join(f'<div style="flex:{n};background:{c}"></div>' for n, c in
+                  ((up, "#1f9d55"), (neutral, "#b8bec9"), (down, "#c62828")) if n)
+    return (f'<div class="card"><div style="font-size:1.15rem;font-weight:800">{escape(reading.verdict)}</div>'
+            f'<div class="tally">{bar}</div>'
+            f'<div class="muted"><b style="color:#1f9d55">▲ {up}</b> Zeichen für steigende Kurse · '
+            f'<b style="color:#c62828">▼ {down}</b> für fallende · {neutral} neutral · '
+            f'Trend: <b>{escape(reading.trend)}</b></div></div>')
+
+
+def reading_list(reading: ChartReading, lesson_titles: dict[str, str]) -> str:
+    items = []
+    for number, sign in enumerate(reading.signs, 1):
+        color, arrow = _DIR[sign.direction]
+        lesson = lesson_titles.get(sign.lesson, "")
+        hint = f'<div class="muted" style="font-size:.8rem">📚 Lektion: {escape(lesson)}</div>' if lesson else ""
+        items.append(f'<li><span class="num" style="background:{color}">{number}</span><div>'
+                     f'<span class="dir" style="color:{color}">{arrow}</span>{escape(sign.text)}{hint}</div></li>')
+    return f'<div class="card"><ul class="signs">{"".join(items)}</ul></div>'
+
+
+def lesson_card(lesson: Lesson) -> str:
+    how = "".join(f"<li>{item}</li>" for item in lesson.how)  # trusted static text (may contain <b>)
+    updown = ""
+    if lesson.up or lesson.down:
+        up = "".join(f"<li>{escape(x)}</li>" for x in lesson.up)
+        down = "".join(f"<li>{escape(x)}</li>" for x in lesson.down)
+        updown = (f'<div class="updown"><div class="u"><div class="h">▲ Zeichen für steigende Kurse</div><ul>{up}</ul>'
+                  f'</div><div class="d"><div class="h">▼ Zeichen für fallende Kurse</div><ul>{down}</ul></div></div>')
+    return (f'<div class="card lesson"><div class="intro">{escape(lesson.intro)}</div>'
+            f'<div style="font-weight:750;margin-bottom:4px">So liest du es</div><ul>{how}</ul>{updown}</div>')
+
+
+def checklist() -> str:
+    up = "".join(f"<li>{escape(x)}</li>" for x in CHECKLIST_UP)
+    down = "".join(f"<li>{escape(x)}</li>" for x in CHECKLIST_DOWN)
+    return (f'<div class="updown"><div class="u"><div class="h">▲ Spricht für steigende Kurse</div><ul>{up}</ul></div>'
+            f'<div class="d"><div class="h">▼ Spricht für fallende Kurse</div><ul>{down}</ul></div></div>')

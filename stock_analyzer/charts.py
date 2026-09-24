@@ -4,9 +4,12 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
 from . import indicators as ind
 from .backtest import StrategyResult
+from .chart_reader import ChartReading, crossings, pivots
+from .chart_school import example
 from .formatting import fmt_date, fmt_price
 from .recommendation import Recommendation
 from .scoring import (
@@ -183,4 +186,188 @@ def equity_chart(result: StrategyResult, pal: dict) -> go.Figure:
                              line=dict(color=s2, width=2), hovertemplate="%{y:+.1f} %"))
     _base_layout(fig, pal, 320)
     fig.update_yaxes(ticksuffix=" %", title=None)
+    return fig
+
+
+# ---------------------------------------------------------------------------- chart reader & indicators
+
+def _lines(fig: go.Figure, close: pd.Series, pal: dict, row: int | None = None, averages: bool = True) -> None:
+    s1, s2, s3 = pal["series"]
+    kw = {"row": row, "col": 1} if row else {}
+    fig.add_trace(go.Scatter(x=close.index, y=close, name="Kurs", line=dict(color=s1, width=2),
+                             hovertemplate="%{y:,.2f}"), **kw)
+    if averages:
+        for window, color, name in ((50, s2, "50-Tage-Linie"), (200, s3, "200-Tage-Linie")):
+            line = ind.sma(close, window)
+            if line.notna().any():
+                fig.add_trace(go.Scatter(x=line.index, y=line, name=name, line=dict(color=color, width=2),
+                                         hovertemplate="%{y:,.2f}"), **kw)
+
+
+def reading_chart(df: pd.DataFrame, reading: ChartReading, pal: dict, months: int = 9) -> go.Figure:
+    """Price with support/resistance and the numbered signs from the chart reader."""
+    close = df["Close"]
+    start = close.index[-1] - pd.DateOffset(months=months)
+    fig = go.Figure()
+    _lines(fig, close, pal)
+    for level, color, text in ((reading.support, pal["good"], "Unterstützung"),
+                               (reading.resistance, pal["critical"], "Widerstand")):
+        if level is not None:
+            fig.add_hline(y=level, line=dict(color=color, width=2, dash="dot"))
+            fig.add_annotation(x=1, xref="paper", y=level, xanchor="left", showarrow=False,
+                               text=f" {text} {level:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."),
+                               font=dict(color=pal["text"], size=12))
+    for number, sign in enumerate(reading.signs, 1):
+        if sign.date is None or sign.date < start:
+            continue
+        color = {1: pal["good"], -1: pal["critical"]}.get(sign.direction, pal["muted"])
+        fig.add_trace(go.Scatter(
+            x=[sign.date], y=[sign.price], mode="markers+text", text=[str(number)], textposition="middle center",
+            textfont=dict(color="#ffffff", size=11), marker=dict(size=22, color=color, line=dict(color=pal["surface"],
+                                                                                             width=2)),
+            name=f"Zeichen {number}", showlegend=False, hovertemplate=f"{number}. {sign.text}<extra></extra>"))
+    visible = close.loc[start:]
+    levels = [lvl for lvl in (reading.support, reading.resistance) if lvl is not None]
+    lo, hi = min([visible.min(), *levels]), max([visible.max(), *levels])
+    pad = (hi - lo) * 0.06
+    _base_layout(fig, pal, 420)
+    fig.update_layout(margin=dict(l=8, r=150, t=40, b=8))
+    fig.update_xaxes(range=[start, close.index[-1] + pd.offsets.BDay(3)])
+    fig.update_yaxes(range=[lo - pad, hi + pad])
+    return fig
+
+
+def _volume_bars(fig: go.Figure, close: pd.Series, volume: pd.Series, pal: dict, row: int) -> None:
+    up = close.diff().fillna(0) >= 0
+    colors = np.where(up, pal["good"], pal["critical"])
+    fig.add_trace(go.Bar(x=volume.index, y=volume, marker=dict(color=colors, opacity=0.6, line=dict(width=0)),
+                         name="Volumen", showlegend=False, hovertemplate="%{y:,.0f}<extra>Volumen</extra>"),
+                  row=row, col=1)
+
+
+def _rsi_panel(fig: go.Figure, close: pd.Series, pal: dict, row: int) -> None:
+    rsi = ind.rsi(close)
+    # The trace must exist before the shapes: plotly skips shapes on empty subplots.
+    fig.add_trace(go.Scatter(x=rsi.index, y=rsi, name="RSI", line=dict(color=pal["series"][0], width=2),
+                             showlegend=False, hovertemplate="RSI %{y:.0f}<extra></extra>"), row=row, col=1)
+    fig.add_hrect(y0=70, y1=100, fillcolor=pal["critical"], opacity=0.1, line_width=0, layer="below", row=row, col=1)
+    fig.add_hrect(y0=0, y1=30, fillcolor=pal["good"], opacity=0.1, line_width=0, layer="below", row=row, col=1)
+    for y in (30, 70):
+        fig.add_hline(y=y, line=dict(color=pal["muted"], width=1, dash="dash"), row=row, col=1)
+    fig.update_yaxes(range=[0, 100], tickvals=[0, 30, 50, 70, 100], row=row, col=1)
+
+
+def _macd_panel(fig: go.Figure, close: pd.Series, pal: dict, row: int) -> None:
+    macd = ind.macd(close)
+    hist_colors = np.where(macd["hist"].fillna(0) >= 0, pal["good"], pal["critical"])
+    fig.add_trace(go.Bar(x=macd.index, y=macd["hist"], marker=dict(color=hist_colors, opacity=0.5, line=dict(width=0)),
+                         name="Abstand", showlegend=False, hovertemplate="%{y:.2f}<extra>Abstand</extra>"),
+                  row=row, col=1)
+    fig.add_trace(go.Scatter(x=macd.index, y=macd["macd"], name="MACD-Linie",
+                             line=dict(color=pal["series"][0], width=2), hovertemplate="%{y:.2f}"), row=row, col=1)
+    fig.add_trace(go.Scatter(x=macd.index, y=macd["signal"], name="Signallinie",
+                             line=dict(color=pal["series"][1], width=2), hovertemplate="%{y:.2f}"), row=row, col=1)
+
+
+def indicator_chart(df: pd.DataFrame, pal: dict, months: int = 12) -> go.Figure:
+    """Volume, RSI and MACD for one stock as three stacked panels (shared time axis)."""
+    start = df.index[-1] - pd.DateOffset(months=months)
+    warm = df.loc[start - pd.DateOffset(months=3):]  # indicator warm-up before the visible window
+    close = warm["Close"]
+    fig = make_subplots(rows=3, cols=1, shared_xaxes=True, vertical_spacing=0.09, row_heights=[0.28, 0.36, 0.36],
+                        subplot_titles=("Volumen (grün = Tag mit Gewinn, rot = mit Verlust)",
+                                        "RSI – über 70 überkauft, unter 30 überverkauft",
+                                        "MACD – blaue Linie über orange = Schwung nach oben"))
+    _volume_bars(fig, close, warm["Volume"], pal, 1)
+    _rsi_panel(fig, close, pal, 2)
+    _macd_panel(fig, close, pal, 3)
+    _base_layout(fig, pal, 620)
+    fig.update_layout(margin=dict(l=8, r=8, t=40, b=8), legend=dict(y=-0.08, yanchor="top"))
+    fig.update_xaxes(range=[start, df.index[-1]])
+    fig.update_annotations(font=dict(size=12, color=pal["text"]), x=0, xanchor="left")
+    return fig
+
+
+# ---------------------------------------------------------------------------- chart school
+
+def _marker(fig, x, y, text, color, pal, row=None, ay=-34):
+    kw = {"row": row, "col": 1} if row else {}
+    fig.add_annotation(x=x, y=y, text=text, showarrow=True, arrowhead=2, arrowcolor=color, ax=0, ay=ay,
+                       font=dict(color=pal["text"], size=12), bgcolor=pal["surface"], bordercolor=color,
+                       borderwidth=1, borderpad=3, **kw)
+
+
+def lesson_chart(key: str, pal: dict) -> go.Figure | None:
+    data = example(key)
+    if not data:
+        return None
+    good, bad, muted = pal["good"], pal["critical"], pal["muted"]
+
+    if key == "trend":
+        fig = make_subplots(rows=1, cols=3, subplot_titles=list(data), horizontal_spacing=0.06)
+        for col, (name, close) in enumerate(data.items(), 1):
+            fig.add_trace(go.Scatter(x=close.index, y=close, line=dict(color=pal["series"][0], width=2),
+                                     showlegend=False, hovertemplate="%{y:.1f}<extra></extra>"), row=1, col=col)
+            for kind, color, symbol in (("high", good if col == 1 else bad if col == 3 else muted, "triangle-down"),
+                                        ("low", good if col == 1 else bad if col == 3 else muted, "triangle-up")):
+                pts = pivots(close, 7, kind)
+                fig.add_trace(go.Scatter(x=pts.index, y=pts, mode="lines+markers", showlegend=False,
+                                         line=dict(color=color, width=1.5, dash="dot"),
+                                         marker=dict(size=9, color=color, symbol=symbol),
+                                         hovertemplate=("Hoch" if kind == "high" else "Tief") + " %{y:.1f}<extra></extra>"),
+                              row=1, col=col)
+            fig.update_xaxes(showticklabels=False, row=1, col=col)
+        _base_layout(fig, pal, 300)
+        fig.update_annotations(font=dict(size=13, color=pal["text"]))
+        return fig
+
+    close = data["close"]
+    if key in ("volumen", "rsi", "macd"):
+        fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.08, row_heights=[0.58, 0.42])
+        _lines(fig, close, pal, row=1, averages=False)
+        if key == "volumen":
+            _volume_bars(fig, close, data["volume"], pal, 2)
+            peak = data["volume"].idxmax()
+            _marker(fig, peak, float(data["volume"].max()), "hohes Volumen beim Ausbruch", good, pal, row=2, ay=-10)
+            _marker(fig, peak, float(close.loc[peak]), "Ausbruch", good, pal, row=1)
+        elif key == "rsi":
+            _rsi_panel(fig, close, pal, 2)
+            rsi = ind.rsi(close)
+            _marker(fig, rsi.idxmax(), float(rsi.max()), "überkauft → Pause", bad, pal, row=2, ay=24)
+            _marker(fig, rsi.idxmin(), float(rsi.min()), "überverkauft → Erholung", good, pal, row=2, ay=-24)
+        else:
+            _macd_panel(fig, close, pal, 2)
+            macd = ind.macd(close)
+            for date, direction in crossings(macd["macd"], macd["signal"])[1:]:
+                if (date - close.index[0]).days < 60:
+                    continue
+                _marker(fig, date, float(close.loc[date]), "▲ Kaufsignal" if direction > 0 else "▼ Verkaufssignal",
+                        good if direction > 0 else bad, pal, row=1, ay=-30 if direction > 0 else 30)
+        _base_layout(fig, pal, 420)
+        return fig
+
+    fig = go.Figure()
+    _lines(fig, close, pal, averages=key == "durchschnitte")
+    if key == "grundlagen":
+        for kind, color, ay, text in (("high", bad, -30, "Hoch"), ("low", good, 30, "Tief")):
+            for date, price in pivots(close, 10, kind).items():
+                _marker(fig, date, float(price), text, color, pal, ay=ay)
+        _marker(fig, close.index[-1], float(close.iloc[-1]), "heute", pal["series"][0], pal)
+        fig.update_xaxes(title_text="Zeit →")
+        fig.update_yaxes(title_text="Kurs in €")
+        fig.update_layout(showlegend=False)
+    elif key == "durchschnitte":
+        for date, direction in crossings(ind.sma(close, 50), ind.sma(close, 200)):
+            price = float(ind.sma(close, 50).loc[date])
+            _marker(fig, date, price, "Golden Cross" if direction > 0 else "Death Cross",
+                    good if direction > 0 else bad, pal, ay=-40 if direction > 0 else 40)
+        fig.update_xaxes(range=[close.index[200], close.index[-1]])
+    elif key == "unterstuetzung":
+        for level, color, text in ((95.5, good, "Unterstützung (Boden)"), (104.8, bad, "Widerstand (Decke)")):
+            fig.add_hline(y=level, line=dict(color=color, width=2, dash="dot"))
+            fig.add_annotation(x=close.index[5], y=level, text=text, showarrow=False, yshift=10 if level > 100 else -10,
+                               xanchor="left", font=dict(color=pal["text"], size=12))
+        breakout = close[close > 106].index[0]
+        _marker(fig, breakout, float(close.loc[breakout]), "Ausbruch ↑", good, pal, ay=-40)
+    _base_layout(fig, pal, 340)
     return fig

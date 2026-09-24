@@ -22,8 +22,10 @@ RISIKO = "Risiko"
 INDIKATOR = "Indikatoren (Signale aus dem Kursverlauf)"
 BASIS = "Börsen-Grundbegriffe"
 RUECKBLICK = "Rückblick"
+KENNZAHL = "Kennzahlen (Fundamentaldaten)"
+CHART = "Chartanalyse"
 
-CATEGORIES = [EMPFEHLUNG, APP, RISIKO, INDIKATOR, BASIS, RUECKBLICK]
+CATEGORIES = [EMPFEHLUNG, APP, KENNZAHL, RISIKO, INDIKATOR, CHART, BASIS, RUECKBLICK]
 
 TERMS: dict[str, Term] = {
     # ------------------------------------------------------------------ recommendations
@@ -208,6 +210,143 @@ TERMS: dict[str, Term] = {
         "Trend des Gesamtmarkts (Vergleichsindex) – in einem fallenden Markt fallen auch gute Aktien oft mit.",
         "Wird wie der Trend einer Aktie bewertet, aber für den Index (z. B. DAX oder S&P 500). "
         "Fließt als eigener Faktor in jeden Score ein.",
+    ),
+
+    # ------------------------------------------------------------------ fundamentals
+    "fundamentalanalyse": Term(
+        "Fundamentalanalyse vs. technische Analyse", KENNZAHL,
+        "Fundamental: Wie gut ist das Unternehmen und wie teuer die Aktie? Technisch: Was sagt der Kursverlauf?",
+        "Die Empfehlung der App beruht auf der technischen Analyse (Kursverlauf). Die Kennzahlen ergänzen das "
+        "Bild: Eine technisch starke Aktie mit sehr hoher Bewertung oder hohen Schulden ist riskanter als eine "
+        "mit soliden Zahlen.",
+    ),
+    "verschuldungsgrad": Term(
+        "Verschuldungsgrad (Debt-to-Equity)", KENNZAHL,
+        "Schulden geteilt durch Eigenkapital. Unter 1 solide, über 2 hoch verschuldet.",
+        "Zeigt, wie stark ein Unternehmen mit fremdem Geld (Krediten, Anleihen) statt mit eigenem Geld arbeitet. "
+        "Viele Schulden machen anfällig für steigende Zinsen und schlechte Zeiten. Ein negativer Wert bedeutet "
+        "negatives Eigenkapital (z. B. durch hohe Aktienrückkäufe oder Verluste). Bei Banken und Versicherern "
+        "ist die Kennzahl wegen ihres Geschäftsmodells kaum vergleichbar.",
+        "Schulden 150 Mrd., Eigenkapital 100 Mrd. → Debt-to-Equity 1,5.",
+    ),
+    "liquiditaet": Term(
+        "Liquidität (Current Ratio)", KENNZAHL,
+        "Kurzfristiges Vermögen geteilt durch kurzfristige Schulden. Über 1,5 komfortabel, unter 1 knapp.",
+        "Zeigt, ob das Unternehmen die Rechnungen der nächsten 12 Monate aus Bargeld, Forderungen und Vorräten "
+        "bezahlen kann.",
+        "Current Ratio 2 → doppelt so viel kurzfristiges Vermögen wie kurzfristige Schulden.",
+    ),
+    "kgv": Term(
+        "KGV (Kurs-Gewinn-Verhältnis, P/E)", KENNZAHL,
+        "Aktienkurs geteilt durch Gewinn je Aktie – wie viele Jahresgewinne man für die Aktie bezahlt.",
+        "Die bekannteste Bewertungskennzahl. Faustregel: unter 15 günstig, 15–25 fair, über 25 teuer. "
+        "Wachstumsfirmen (z. B. Tech) haben oft ein hohes KGV, weil hohe künftige Gewinne erwartet werden. "
+        "Bei Verlusten gibt es kein sinnvolles KGV.",
+        "Kurs 100 €, Gewinn je Aktie 5 € → KGV 20.",
+    ),
+    "kgv_erwartet": Term(
+        "Erwartetes KGV (Forward P/E)", KENNZAHL,
+        "Wie das KGV, aber mit dem von Analysten erwarteten Gewinn der nächsten 12 Monate.",
+        "Liegt das erwartete KGV deutlich unter dem aktuellen, rechnen Analysten mit steigenden Gewinnen.",
+    ),
+    "peg": Term(
+        "PEG-Ratio", KENNZAHL,
+        "KGV geteilt durch das erwartete Gewinnwachstum. Unter 1 günstig, über 2 teuer.",
+        "Berücksichtigt, dass schnell wachsende Firmen ein höheres KGV verdienen. Ein KGV von 30 bei 30 % "
+        "Wachstum ergibt PEG 1 – fair.",
+    ),
+    "kbv": Term(
+        "KBV (Kurs-Buchwert-Verhältnis, P/B)", KENNZAHL,
+        "Aktienkurs geteilt durch das Eigenkapital je Aktie. Unter 1 heißt: Aktie kostet weniger als ihr Buchwert.",
+        "Der Buchwert ist grob das, was nach Abzug aller Schulden übrig bliebe. Ein KBV unter 1 kann ein "
+        "Schnäppchen sein – oder ein Zeichen, dass der Markt Probleme erwartet. Firmen mit wenig Sachvermögen "
+        "(Software, Marken) haben naturgemäß ein hohes KBV.",
+        "Kurs 30 €, Buchwert je Aktie 20 € → KBV 1,5.",
+    ),
+    "kuv": Term(
+        "KUV (Kurs-Umsatz-Verhältnis, P/S)", KENNZAHL,
+        "Börsenwert geteilt durch Jahresumsatz. Nützlich, wenn eine Firma noch keinen Gewinn macht.",
+        "Faustregel: unter 1 günstig, 1–4 fair, über 4 teuer – stark branchenabhängig.",
+    ),
+    "ev_ebitda": Term(
+        "EV/EBITDA", KENNZAHL,
+        "Unternehmenswert (inkl. Schulden) geteilt durch den operativen Gewinn vor Abschreibungen.",
+        "Vergleicht Firmen unabhängig davon, wie stark sie verschuldet sind. Unter 8 günstig, über 15 teuer.",
+    ),
+    "eigenkapitalrendite": Term(
+        "Eigenkapitalrendite (ROE)", KENNZAHL,
+        "Gewinn geteilt durch Eigenkapital – wie viel das Unternehmen aus dem Geld der Aktionäre macht.",
+        "Über 15 % gilt als stark. Vorsicht: Sehr hohe Werte können auch durch sehr wenig Eigenkapital "
+        "(hohe Schulden, Aktienrückkäufe) entstehen – deshalb zusammen mit dem Verschuldungsgrad ansehen.",
+    ),
+    "nettomarge": Term(
+        "Nettomarge", KENNZAHL,
+        "Wie viel vom Umsatz als Gewinn übrig bleibt.",
+        "Nettomarge 20 % heißt: Von 100 € Umsatz bleiben 20 € Gewinn. Hohe Margen sprechen für "
+        "Preissetzungsmacht.",
+    ),
+    "umsatzwachstum": Term(
+        "Umsatzwachstum", KENNZAHL,
+        "Wie stark der Umsatz im Vergleich zum Vorjahr gewachsen ist.",
+        "Über 10 % gilt als starkes Wachstum. Schrumpfender Umsatz ist ein Warnsignal.",
+    ),
+    "gewinnwachstum": Term(
+        "Gewinnwachstum", KENNZAHL,
+        "Wie stark der Gewinn im Vergleich zum Vorjahr gewachsen ist.",
+        "Steigende Gewinne sind langfristig der wichtigste Treiber für steigende Aktienkurse.",
+    ),
+    "dividendenrendite": Term(
+        "Dividendenrendite", KENNZAHL,
+        "Jährliche Dividende geteilt durch den Aktienkurs.",
+        "2–6 % gelten als attraktiv. Sehr hohe Renditen entstehen oft, weil der Kurs stark gefallen ist – dann "
+        "prüfen, ob die Dividende gehalten werden kann (Ausschüttungsquote).",
+        "Dividende 3 € je Aktie, Kurs 100 € → Dividendenrendite 3 %.",
+    ),
+    "ausschuettungsquote": Term(
+        "Ausschüttungsquote", KENNZAHL,
+        "Welcher Anteil des Gewinns als Dividende ausgezahlt wird.",
+        "Unter 60 % ist die Dividende gut gedeckt. Über 90 % zahlt die Firma fast alles aus – bei einem "
+        "Gewinneinbruch droht eine Kürzung.",
+    ),
+    "beta": Term(
+        "Beta", KENNZAHL,
+        "Wie stark die Aktie im Vergleich zum Gesamtmarkt schwankt. 1 = wie der Markt.",
+        "Beta 1,5: Fällt der Markt um 10 %, fällt die Aktie typischerweise um 15 %. Beta 0,6: nur um 6 %.",
+    ),
+    "marktkapitalisierung": Term(
+        "Börsenwert (Marktkapitalisierung)", KENNZAHL,
+        "Aktienkurs × Anzahl aller Aktien – was das ganze Unternehmen an der Börse kostet.",
+        "Über 10 Mrd. spricht man von Large Caps (groß, meist stabiler), 2–10 Mrd. Mid Caps, darunter Small Caps.",
+    ),
+    "analystenziel": Term(
+        "Kursziel der Analysten", KENNZAHL,
+        "Durchschnittliches Kursziel von Bankanalysten für die nächsten 12 Monate.",
+        "Eine Orientierung, keine Garantie – Analysten liegen oft daneben und sind im Schnitt eher zu optimistisch. "
+        "Nicht zu verwechseln mit dem Kursziel dieser App, das aus dem Kursverlauf berechnet wird.",
+    ),
+    # ------------------------------------------------------------------ chart reading
+    "unterstuetzung_widerstand": Term(
+        "Unterstützung & Widerstand", CHART,
+        "Kursniveaus, an denen die Aktie früher mehrfach gedreht hat – wie ein Boden bzw. eine Decke.",
+        "An einer Unterstützung haben früher viele gekauft, an einem Widerstand viele verkauft. Diese Niveaus "
+        "wirken oft erneut. Wird ein Widerstand durchbrochen, wird er häufig zur neuen Unterstützung.",
+    ),
+    "ausbruch": Term(
+        "Ausbruch (Breakout)", CHART,
+        "Der Kurs steigt klar über einen Widerstand oder auf ein neues Hoch.",
+        "Oft der Start einer neuen Aufwärtsbewegung – besonders, wenn dabei viel gehandelt wird (hohes Volumen). "
+        "Das Gegenstück ist der Bruch einer Unterstützung nach unten.",
+    ),
+    "hochs_tiefs": Term(
+        "Höhere Hochs & höhere Tiefs", CHART,
+        "Das Kennzeichen eines Aufwärtstrends: jede Welle endet höher als die vorige.",
+        "Im Abwärtstrend ist es umgekehrt (tiefere Hochs und tiefere Tiefs). Bricht das Muster, endet der Trend "
+        "oft.",
+    ),
+    "divergenz": Term(
+        "Divergenz", CHART,
+        "Kurs und Indikator (z. B. RSI) laufen auseinander – etwa neues Kurshoch, aber kein neues RSI-Hoch.",
+        "Deutet darauf hin, dass der Schwung nachlässt und der Trend bald drehen könnte.",
     ),
     # ------------------------------------------------------------------ basics
     "ticker": Term(
