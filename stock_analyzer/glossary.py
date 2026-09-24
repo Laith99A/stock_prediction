@@ -24,8 +24,10 @@ BASIS = "Börsen-Grundbegriffe"
 RUECKBLICK = "Rückblick"
 KENNZAHL = "Kennzahlen (Fundamentaldaten)"
 CHART = "Chartanalyse"
+HALAL = "☪️ Halal investieren"
+SLANG = "💬 Investor-Sprache"
 
-CATEGORIES = [EMPFEHLUNG, APP, KENNZAHL, RISIKO, INDIKATOR, CHART, BASIS, RUECKBLICK]
+CATEGORIES = [HALAL, SLANG, EMPFEHLUNG, APP, KENNZAHL, RISIKO, INDIKATOR, CHART, BASIS, RUECKBLICK]
 
 TERMS: dict[str, Term] = {
     # ------------------------------------------------------------------ recommendations
@@ -389,6 +391,134 @@ TERMS: dict[str, Term] = {
         "Anteil im Plus", RUECKBLICK,
         "Wie oft der Kurs einen Monat nach dem Signal höher lag als am Signaltag.",
         "Bei Kaufsignalen sollte dieser Wert möglichst hoch sein, bei Verkaufssignalen möglichst niedrig.",
+    ),
+    # ------------------------------------------------------------------ halal
+    "halal_investieren": Term(
+        "Halal investieren (Shariah-konform)", HALAL,
+        "Investieren nach islamischen Regeln: keine verbotenen Geschäftsfelder und keine hohe Verschuldung.",
+        "Die App prüft zwei Dinge: 1) Das Geschäftsfeld – ausgeschlossen sind Alkohol, Tabak, Waffen, Glücksspiel, "
+        "Banken und Kredite (Zinsen), konventionelle Versicherungen, Schweinefleisch und Erwachsenenunterhaltung. "
+        "2) Die Schulden – Debt-to-Equity höchstens 0,33. Nur wenn beides passt, gilt die Aktie als halal.",
+    ),
+    "riba": Term(
+        "Riba (Zinsen)", HALAL,
+        "Zinsen zu nehmen oder zu zahlen ist im Islam verboten.",
+        "Deshalb fallen Banken, Kreditanbieter und Anleihen heraus. Auch Unternehmen, die sich stark über "
+        "verzinste Kredite finanzieren, werden aussortiert – das misst die Schuldengrenze.",
+    ),
+    "halal_schulden": Term(
+        "Schuldengrenze 33 %", HALAL,
+        "Die App lässt nur Aktien zu, deren Schulden höchstens 33 % des Eigenkapitals betragen (Debt-to-Equity ≤ 0,33).",
+        "Das ist eine strenge Regel. Viele islamische Indizes (z. B. Dow Jones Islamic, S&P Shariah) messen die "
+        "Schulden stattdessen am Börsenwert – dadurch bestehen dort mehr Aktien den Test.",
+        "Schulden 20 Mrd., Eigenkapital 100 Mrd. → Debt-to-Equity 0,20 → besteht.",
+    ),
+    "halal_pruefen": Term(
+        "❔ Prüfen (Grenzfall)", HALAL,
+        "Geschäftsfelder, die Gelehrte unterschiedlich bewerten, oder fehlende Daten.",
+        "Beispiele: Musik- und Filmunterhaltung, Krypto-Geschäft, kleine Rüstungsanteile oder Hotels mit "
+        "Alkoholausschank. Hier solltest du selbst nachlesen oder eine Fatwa-Stelle bzw. einen Halal-Screener fragen.",
+    ),
+    "purification": Term(
+        "Dividenden-Reinigung (Purification)", HALAL,
+        "Den kleinen Anteil einer Dividende spenden, der aus nicht erlaubten Einnahmen stammt (z. B. Zinsen).",
+        "Auch halal-konforme Firmen haben oft kleine Zinseinnahmen auf ihr Bankguthaben. Viele Anleger rechnen "
+        "diesen Anteil heraus und spenden ihn.",
+    ),
+    "short_selling": Term(
+        "Short-Selling & Hebel", HALAL,
+        "Auf fallende Kurse wetten oder mit geliehenem Geld handeln – nach gängiger Auffassung nicht halal.",
+        "Short-Selling bedeutet, geliehene Aktien zu verkaufen; Hebelprodukte (CFDs, Knock-outs) enthalten Kredit "
+        "und Spekulation. „Verkaufen“ heißt in dieser App nur: die Aktie nicht (mehr) halten.",
+    ),
+    # ------------------------------------------------------------------ investor language
+    "bullish_bearish": Term(
+        "Bullish & Bearish", SLANG,
+        "Bullish = man erwartet steigende Kurse, bearish = fallende.",
+        "Merkhilfe: Der Bulle stößt mit den Hörnern nach oben, der Bär schlägt mit der Tatze nach unten. "
+        "Ein „Bullenmarkt“ ist eine lange Aufwärtsphase, ein „Bärenmarkt“ ein Rückgang um mehr als 20 %.",
+        "„Ich bin bullish auf SAP“ = „Ich glaube, SAP steigt.“",
+    ),
+    "buy_the_dip": Term(
+        "Buy the Dip", SLANG,
+        "Nach einem Kursrutsch („Dip“) nachkaufen, weil man auf Erholung setzt.",
+        "Klappt nur, wenn der übergeordnete Trend intakt ist. Sonst „greift man in ein fallendes Messer“. "
+        "Der Chart-Leser hilft: Liegt der Kurs noch über der 200-Tage-Linie?",
+    ),
+    "ath": Term(
+        "ATH (All-Time High)", SLANG,
+        "Allzeithoch – der höchste Kurs, den eine Aktie je hatte.",
+        "Aktien auf einem Allzeithoch haben keinen Widerstand darüber; das gilt oft als Stärkezeichen.",
+    ),
+    "blue_chip": Term(
+        "Blue Chip", SLANG,
+        "Große, etablierte und bekannte Unternehmen wie Apple, SAP oder Nestlé.",
+        "Blue Chips schwanken meist weniger als kleine Firmen und gelten als solidere Basis für ein Depot.",
+    ),
+    "penny_stock": Term(
+        "Penny Stock", SLANG,
+        "Sehr billige Aktien (unter 1 € bzw. 5 $), meist kleine und riskante Firmen.",
+        "Wichtig: Ein niedriger Preis pro Aktie heißt nicht, dass die Aktie günstig ist. Ob sie günstig bewertet "
+        "ist, zeigt z. B. das KGV. Bei vielen Brokern kannst du auch Bruchstücke teurer Aktien kaufen.",
+    ),
+    "fomo": Term(
+        "FOMO (Fear of Missing Out)", SLANG,
+        "Die Angst, einen Kursanstieg zu verpassen – verleitet zum Kaufen, wenn schon alle kaufen.",
+        "FOMO-Käufe passieren oft kurz vor dem Hoch. Ein Warnzeichen: RSI über 70 (überkauft).",
+    ),
+    "hodl": Term(
+        "HODL", SLANG,
+        "Langfristig halten, auch wenn der Kurs wackelt.",
+        "Entstanden aus einem Tippfehler von „hold“. Langfristig halten ist sinnvoll bei soliden Firmen – "
+        "ein Stop-Loss schützt trotzdem vor großen Verlusten.",
+    ),
+    "portfolio": Term(
+        "Portfolio / Depot", SLANG,
+        "Alle Wertpapiere, die du besitzt. Das Depot ist das Konto dafür bei deinem Broker.",
+        "Ein gutes Portfolio ist über mehrere Branchen und Länder verteilt (Diversifikation).",
+    ),
+    "diversifikation": Term(
+        "Diversifikation", SLANG,
+        "Dein Geld auf viele Aktien, Branchen und Länder verteilen.",
+        "Wenn eine Aktie abstürzt, trifft es nicht dein ganzes Geld. „Nicht alle Eier in einen Korb legen.“",
+    ),
+    "etf": Term(
+        "ETF", SLANG,
+        "Ein Fonds, der einen ganzen Index nachbildet – viele Aktien auf einmal.",
+        "Für Einsteiger oft der einfachste Start. Es gibt auch Islamic- bzw. Shariah-ETFs, die nur "
+        "halal-konforme Aktien enthalten.",
+    ),
+    "sparplan": Term(
+        "Sparplan", SLANG,
+        "Regelmäßig einen festen Betrag investieren, z. B. 50 € im Monat.",
+        "Du kaufst automatisch mal teurer, mal günstiger ein (Cost-Average-Effekt) und musst den perfekten "
+        "Zeitpunkt nicht erraten.",
+    ),
+    "rendite": Term(
+        "Rendite (Return)", SLANG,
+        "Gewinn oder Verlust einer Geldanlage in Prozent.",
+        "100 € werden zu 110 € → Rendite +10 %. Bei Aktien zählen Kursgewinne und Dividenden.",
+    ),
+    "rally_crash": Term(
+        "Rally, Korrektur & Crash", SLANG,
+        "Rally = starker Anstieg · Korrektur = Rückgang um ca. 10–20 % · Crash = schneller Einbruch über 20 %.",
+        "Korrekturen sind normal und kommen etwa jedes Jahr vor. Wer sie kennt, gerät weniger in Panik.",
+    ),
+    "earnings": Term(
+        "Earnings (Quartalszahlen)", SLANG,
+        "Alle drei Monate veröffentlichen Firmen Umsatz und Gewinn – das bewegt den Kurs oft stark.",
+        "„Beat“ = besser als erwartet, „Miss“ = schlechter. Auch der Ausblick („Guidance“) ist wichtig.",
+    ),
+    "broker": Term(
+        "Broker / Neobroker", SLANG,
+        "Der Anbieter, über den du Aktien kaufst – z. B. Trade Republic, Scalable Capital oder deine Bank.",
+        "Chinesische und amerikanische Aktien handelst du dort meist über deutsche Börsen wie Tradegate oder "
+        "Lang & Schwarz – in Euro.",
+    ),
+    "order": Term(
+        "Market- vs. Limit-Order", SLANG,
+        "Market-Order: sofort zum aktuellen Preis. Limit-Order: nur zu deinem Wunschpreis oder besser.",
+        "Bei schwankenden Aktien schützt eine Limit-Order davor, zu teuer zu kaufen.",
     ),
 }
 

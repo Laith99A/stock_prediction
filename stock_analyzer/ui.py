@@ -3,17 +3,19 @@ from __future__ import annotations
 
 from html import escape
 
+import pandas as pd
+
 from .chart_reader import ChartReading
 from .chart_school import CHECKLIST_DOWN, CHECKLIST_UP, Lesson
 from .formatting import LABEL_DE, fmt_date, fmt_days, fmt_num, fmt_pct, fmt_price, fmt_score
 from .fundamentals import GroupSummary, Metric
 from .glossary import TERMS
+from .halal import MAX_DEBT_TO_EQUITY, HalalCheck
 from .recommendation import Recommendation
 from .scoring import (
     BUY,
     BUY_THRESHOLD,
     HOLD,
-    LABELS,
     SELL,
     SELL_THRESHOLD,
     STRONG_BUY_THRESHOLD,
@@ -30,52 +32,60 @@ BASE_COLOR = {
     "STRONG_SELL": "#c62828",
 }
 
-_LIGHT = """
-  --card-bg:#ffffff; --card-bd:#e3e8ef; --muted:#5b6474; --soft:#f1f4f9;
-  --shadow:0 1px 2px rgba(16,24,40,.05),0 2px 8px rgba(16,24,40,.06);
-  --tip-bg:#0f172a; --tip-fg:#f8fafc; --up:#15803d; --down:#c62828;
-  --sb-bg:#0e7a3a; --sb-fg:#ffffff; --sb-bd:#0e7a3a;
-  --b-bg:rgba(31,157,85,.13); --b-fg:#11643a; --b-bd:rgba(31,157,85,.45);
-  --h-bg:rgba(232,163,23,.17); --h-fg:#7a5200; --h-bd:rgba(232,163,23,.6);
-  --s-bg:rgba(224,96,42,.13); --s-fg:#9a3412; --s-bd:rgba(224,96,42,.5);
-  --ss-bg:#c62828; --ss-fg:#ffffff; --ss-bd:#c62828;
-  --r-bg:rgba(198,40,40,.11); --r-fg:#a61b1b; --r-bd:rgba(198,40,40,.4);
-  --i-bg:rgba(31,111,235,.10); --i-fg:#1b4fa8; --i-bd:rgba(31,111,235,.35);
-"""
-_DARK = """
-  --card-bg:#111a2b; --card-bd:#243049; --muted:#9aa6bd; --soft:#162238;
-  --shadow:none;
-  --tip-bg:#f1f5f9; --tip-fg:#0f172a; --up:#4ade80; --down:#f87171;
+# Dark design: deep navy surfaces, violet→cyan brand accent, emerald for halal.
+_VARS = """
+  --card-bg:#111827; --card-bd:#1f2a3f; --muted:#93a0b8; --soft:#172033; --text:#e8ecf4;
+  --shadow:0 1px 0 rgba(255,255,255,.03) inset, 0 8px 24px rgba(0,0,0,.25);
+  --accent:#8b7bff; --accent2:#22d3ee; --grad:linear-gradient(120deg,#7c5cff 0%,#22d3ee 100%);
+  --tip-bg:#f1f5f9; --tip-fg:#0f172a; --up:#34d399; --down:#f87171;
   --sb-bg:#12924a; --sb-fg:#ffffff; --sb-bd:#12924a;
   --b-bg:rgba(34,197,94,.14); --b-fg:#6ee7a1; --b-bd:rgba(34,197,94,.45);
   --h-bg:rgba(245,180,40,.15); --h-fg:#fcd34d; --h-bd:rgba(245,180,40,.5);
   --s-bg:rgba(249,115,22,.15); --s-fg:#fdba74; --s-bd:rgba(249,115,22,.5);
   --ss-bg:#d32f2f; --ss-fg:#ffffff; --ss-bd:#d32f2f;
   --r-bg:rgba(248,113,113,.14); --r-fg:#fca5a5; --r-bd:rgba(248,113,113,.45);
-  --i-bg:rgba(96,165,250,.14); --i-fg:#93c5fd; --i-bd:rgba(96,165,250,.4);
+  --i-bg:rgba(139,123,255,.16); --i-fg:#c4b8ff; --i-bd:rgba(139,123,255,.45);
+  --halal-bg:rgba(16,185,129,.16); --halal-fg:#6ee7b7; --halal-bd:rgba(16,185,129,.5);
 """
 
 _CSS = """
-.block-container { padding-top: 1.6rem; padding-bottom: 4rem; max-width: 1360px; }
-.stTabs [data-baseweb="tab"] p { font-size: 1.02rem; font-weight: 600; }
+.block-container { padding-top: 1.2rem; padding-bottom: 4rem; max-width: 1280px; }
+[data-testid="stSidebar"], [data-testid="stSidebarCollapsedControl"] { display: none; }
+h1, h2, h3, .sec .t, .hero .title, .dname, .sc-name, .wotd .w { font-family: "Space Grotesk", Inter, sans-serif; }
+
+/* pill-shaped navigation tabs */
+[data-testid="stTabs"] [role="tablist"] { gap: 8px; flex-wrap: wrap; border: none; box-shadow: none; padding-bottom: 6px; }
+[data-testid="stTabs"] [role="tablist"]::after, [data-testid="stTabs"] [role="tablist"]::before { display: none; }
+[data-testid="stTabs"] [data-testid="stTab"] { background: var(--card-bg); border: 1px solid var(--card-bd); border-radius: 999px;
+  padding: 7px 18px; height: auto; transition: border-color .15s; }
+[data-testid="stTabs"] [data-testid="stTab"]:hover { border-color: var(--accent); }
+[data-testid="stTabs"] [data-testid="stTab"] > div:not([data-testid]) { display: none; }  /* underline indicator */
+[data-testid="stTabs"] [data-testid="stTab"] p { font-size: .98rem; font-weight: 600; }
+[data-testid="stTabs"] [data-testid="stTab"][aria-selected="true"] { background: var(--grad); border-color: transparent; }
+[data-testid="stTabs"] [data-testid="stTab"][aria-selected="true"] p { color: #fff; }
 div[data-testid="stMetric"] { background: var(--card-bg); box-shadow: var(--shadow); }
 div[data-testid="stMetricValue"] { font-weight: 700; }
+div[data-testid="stPopover"] button, .stButton button { border-radius: 12px; }
 
-.hero { position: relative; overflow: hidden; border-radius: 22px; padding: 28px 32px; margin-bottom: 14px;
-  color: #fff; background: linear-gradient(120deg, #0b2447 0%, #173d7a 45%, #1f6feb 100%);
+.hero { position: relative; overflow: hidden; border-radius: 24px; padding: 26px 30px; margin-bottom: 16px;
+  color: #fff; background:
+    radial-gradient(circle at 12% 18%, rgba(124,92,255,.55), transparent 42%),
+    radial-gradient(circle at 88% 0%, rgba(34,211,238,.40), transparent 45%),
+    radial-gradient(circle at 60% 120%, rgba(16,185,129,.30), transparent 45%), #0f1629;
+  border: 1px solid rgba(255,255,255,.08);
   display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; flex-wrap: wrap; }
-.hero::before { content: ""; position: absolute; right: -80px; top: -120px; width: 380px; height: 380px;
-  border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,.16), rgba(255,255,255,0) 70%); }
-.hero .kicker { font-size: .78rem; letter-spacing: .14em; text-transform: uppercase; opacity: .8; font-weight: 700; }
-.hero .title { font-size: 2.15rem; font-weight: 800; line-height: 1.15; margin: 6px 0 8px; }
-.hero .sub { opacity: .9; max-width: 680px; font-size: 1.02rem; line-height: 1.45; }
+.hero .kicker { font-size: .78rem; letter-spacing: .16em; text-transform: uppercase; opacity: .85; font-weight: 700; }
+.hero .title { font-size: 2.2rem; font-weight: 700; line-height: 1.1; margin: 6px 0 8px; }
+.hero .title span { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.hero .sub { opacity: .9; max-width: 640px; font-size: 1rem; line-height: 1.45; }
 .hero .chips { display: flex; gap: 8px; flex-wrap: wrap; position: relative; }
-.chip { background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.25); border-radius: 999px;
+.chip { background: rgba(255,255,255,.10); border: 1px solid rgba(255,255,255,.18); border-radius: 999px;
   padding: 5px 12px; font-size: .82rem; white-space: nowrap; }
 
-.card { background: var(--card-bg); border: 1px solid var(--card-bd); border-radius: 16px; padding: 18px 20px;
+.card { background: var(--card-bg); border: 1px solid var(--card-bd); border-radius: 18px; padding: 18px 20px;
   box-shadow: var(--shadow); }
 .muted { color: var(--muted); }
+.up { color: var(--up); } .down { color: var(--down); }
 
 .badge { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 3px 12px;
   font-weight: 700; font-size: .84rem; border: 1px solid transparent; white-space: nowrap; line-height: 1.5; }
@@ -86,16 +96,45 @@ div[data-testid="stMetricValue"] { font-weight: 700; }
     for c in CLS.values()
 ) + """
 
+.hb { display: inline-flex; align-items: center; gap: 4px; border-radius: 999px; padding: 2px 9px; font-size: .76rem;
+  font-weight: 700; border: 1px solid transparent; white-space: nowrap; }
+.hb.halal { background: var(--halal-bg); color: var(--halal-fg); border-color: var(--halal-bd); }
+.hb.nicht { background: var(--r-bg); color: var(--r-fg); border-color: var(--r-bd); }
+.hb.pruefen { background: var(--h-bg); color: var(--h-fg); border-color: var(--h-bd); }
+.hb.lg { font-size: .95rem; padding: 5px 14px; }
+
 .tt { border-bottom: 1px dotted currentColor; cursor: help; position: relative; outline: none; }
 .tt .tip { visibility: hidden; opacity: 0; position: absolute; left: 50%; bottom: calc(100% + 8px);
   transform: translateX(-50%); width: max-content; max-width: 280px; background: var(--tip-bg); color: var(--tip-fg);
   padding: 8px 11px; border-radius: 9px; font-size: .8rem; line-height: 1.4; font-weight: 400; z-index: 1000;
-  transition: opacity .12s; white-space: normal; text-align: left; box-shadow: 0 8px 24px rgba(0,0,0,.22);
-  pointer-events: none; }
+  transition: opacity .12s; white-space: normal; text-align: left; box-shadow: 0 8px 24px rgba(0,0,0,.35);
+  pointer-events: none; font-family: Inter, sans-serif; }
 .tt:hover .tip, .tt:focus .tip { visibility: visible; opacity: 1; }
 .info { display: inline-flex; width: 16px; height: 16px; border-radius: 50%; align-items: center; justify-content: center;
   font-size: .68rem; font-weight: 700; border: 1px solid currentColor; opacity: .6; margin-left: 4px;
   border-bottom-style: solid; vertical-align: 1px; }
+
+.pulse { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 6px; }
+.pulse .card { padding: 14px 16px; }
+.pulse .k { font-size: .8rem; color: var(--muted); margin-bottom: 4px; }
+.pulse .v { font-size: 1.25rem; font-weight: 750; }
+.pulse .s { font-size: .82rem; color: var(--muted); margin-top: 2px; }
+.wotd { background: linear-gradient(var(--card-bg), var(--card-bg)) padding-box, var(--grad) border-box;
+  border: 1px solid transparent; }
+.wotd .w { font-size: 1.1rem; font-weight: 700; }
+
+.sc { display: flex; flex-direction: column; gap: 8px; padding: 16px 16px 14px; height: 100%; transition: border-color .15s; }
+.sc:hover { border-color: var(--accent); }
+.sc-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+.sc-name { font-weight: 700; font-size: 1.08rem; line-height: 1.2; }
+.sc-meta { color: var(--muted); font-size: .8rem; margin-top: 2px; }
+.sc-mid { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.sc-price { font-size: 1.45rem; font-weight: 800; line-height: 1.1; }
+.sc-sub { color: var(--muted); font-size: .8rem; margin-top: 2px; }
+.sc-bottom { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.sc-score { font-weight: 800; font-variant-numeric: tabular-nums; }
+.sc-line { font-size: .84rem; color: var(--muted); border-top: 1px solid var(--card-bd); padding-top: 8px; }
+.sc-line b { color: var(--text); }
 
 .meter { position: relative; margin: 34px 4px 4px; }
 .meter-track { display: flex; gap: 3px; height: 14px; }
@@ -109,33 +148,25 @@ div[data-testid="stMetricValue"] { font-weight: 700; }
 .meter-labels div { text-align: center; line-height: 1.2; }
 .meter-labels .active { color: inherit; font-weight: 700; }
 
-.dist { display: flex; gap: 3px; height: 36px; }
-.dist .seg { display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700;
-  font-size: .9rem; min-width: 0; overflow: hidden; }
-.dist .seg:first-child { border-radius: 10px 0 0 10px; }
-.dist .seg:last-child { border-radius: 0 10px 10px 0; }
-.dist .seg:only-child { border-radius: 10px; }
-.dist .seg.h { color: #3d2a00; }
-.dist-legend { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 12px; font-size: .88rem; }
-.dist-legend .dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; margin-right: 6px; }
-
-.scard { display: flex; flex-direction: column; gap: 6px; height: 100%; border-top-width: 4px; }
-.scard .top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-.scard .name { font-weight: 750; font-size: 1.08rem; line-height: 1.25; margin-top: 4px; }
-.scard .meta { color: var(--muted); font-size: .85rem; }
-.scard .row { display: flex; justify-content: space-between; gap: 10px; font-size: .9rem; }
-.scard .row span:first-child { color: var(--muted); }
-.scard .score { font-weight: 800; font-size: 1.05rem; font-variant-numeric: tabular-nums; }
-
 .dhead { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
-.dname { font-size: 1.75rem; font-weight: 800; line-height: 1.2; }
-.dmeta { color: var(--muted); font-size: .92rem; margin-top: 2px; }
-.dprice { font-size: 1.75rem; font-weight: 800; text-align: right; line-height: 1.2; }
-.chg { font-size: .92rem; font-weight: 700; }
+.dname { font-size: 1.8rem; font-weight: 700; line-height: 1.2; }
+.dmeta { color: var(--muted); font-size: .92rem; margin-top: 4px; display: flex; gap: 8px; align-items: center;
+  flex-wrap: wrap; }
+.dprice { font-size: 1.8rem; font-weight: 800; text-align: right; line-height: 1.2; }
+.chg { font-size: .9rem; font-weight: 700; text-align: right; }
 .chg.up { color: var(--up); } .chg.down { color: var(--down); }
 
+.hcard { border-left-width: 6px; }
+.hcard.halal { border-left-color: #10b981; } .hcard.nicht { border-left-color: #ef4444; }
+.hcard.pruefen { border-left-color: #f59e0b; }
+.hcard .hh { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 10px; }
+.hcard .ht { font-size: 1.15rem; font-weight: 800; }
+.hcard ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+.hcard li { display: flex; gap: 10px; align-items: flex-start; background: var(--soft); border-radius: 12px;
+  padding: 9px 12px; line-height: 1.4; }
+
 .action { border-left-width: 6px; }
-.action .headline { font-size: 1.3rem; font-weight: 800; margin-bottom: 4px; }
+.action .headline { font-size: 1.25rem; font-weight: 800; margin-bottom: 4px; }
 .action .summary { color: var(--muted); margin-bottom: 12px; }
 .plan { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
 .plan li { display: flex; gap: 12px; align-items: flex-start; background: var(--soft); border-radius: 12px;
@@ -152,16 +183,16 @@ div[data-testid="stMetricValue"] { font-weight: 700; }
 .reasons .neg { background: var(--s-bg); color: var(--s-fg); }
 .reasons .neu { background: var(--soft); color: var(--muted); }
 
-.sec { margin: 26px 0 10px; }
-.sec .t { font-size: 1.28rem; font-weight: 800; }
+.sec { margin: 24px 0 10px; }
+.sec .t { font-size: 1.3rem; font-weight: 700; }
 .sec .s { color: var(--muted); font-size: .92rem; margin-top: 2px; }
 
 .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
 .step .n { display: inline-flex; width: 28px; height: 28px; border-radius: 50%; align-items: center; justify-content: center;
-  background: #1f6feb; color: #fff; font-weight: 800; margin-bottom: 8px; }
+  background: var(--grad); color: #fff; font-weight: 800; margin-bottom: 8px; }
 .step .h { font-weight: 750; margin-bottom: 4px; }
 
-.ggrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 12px; }
+.ggrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; }
 .gcard .gt { font-weight: 800; font-size: 1.05rem; }
 .gcard .gs { font-weight: 600; margin: 4px 0 6px; }
 .gcard .gl { color: var(--muted); line-height: 1.5; }
@@ -176,18 +207,19 @@ div[data-testid="stMetricValue"] { font-weight: 700; }
 .pill.p-na { background: var(--soft); color: var(--muted); }
 .fsum { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: 14px; }
 .fsum .g { font-size: .85rem; color: var(--muted); margin-bottom: 6px; }
-.fsum .v { font-size: 1.05rem; font-weight: 750; margin-bottom: 8px; }
 .mgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
 .mcard { display: flex; flex-direction: column; gap: 6px; padding: 14px 16px; }
 .mcard.hl { grid-column: span 2; border-width: 2px; }
 .mcard .mt { font-size: .86rem; color: var(--muted); font-weight: 600; }
 .mcard .mv { font-size: 1.55rem; font-weight: 800; line-height: 1.15; }
 .mcard .mr { font-size: .78rem; color: var(--muted); line-height: 1.35; }
-.gauge { position: relative; margin: 10px 0 18px; }
+.gauge { position: relative; margin: 22px 0 18px; }
 .gauge .track { display: flex; gap: 3px; height: 10px; }
 .gauge .track div { border-radius: 4px; opacity: .8; }
 .gauge .mark { position: absolute; top: -5px; width: 4px; height: 20px; border-radius: 2px; background: currentColor;
   transform: translateX(-50%); box-shadow: 0 0 0 2px var(--card-bg); }
+.gauge .limit { position: absolute; top: -18px; height: 34px; border-left: 2px dashed #10b981; }
+.gauge .limit span { position: absolute; top: -2px; left: 6px; font-size: .7rem; color: var(--halal-fg); white-space: nowrap; }
 .gauge .ticks { position: relative; height: 14px; font-size: .72rem; color: var(--muted); margin-top: 4px; }
 .gauge .ticks span { position: absolute; transform: translateX(-50%); }
 .tally { display: flex; height: 12px; border-radius: 6px; overflow: hidden; gap: 3px; margin: 8px 0 4px; }
@@ -209,15 +241,9 @@ div[data-testid="stMetricValue"] { font-weight: 700; }
 """
 
 
-def css(theme_type: str | None) -> str:
-    """Global stylesheet. Follows the Streamlit theme when known, else the OS setting."""
-    if theme_type == "dark":
-        variables = f":root {{{_DARK}}}"
-    elif theme_type == "light":
-        variables = f":root {{{_LIGHT}}}"
-    else:
-        variables = f":root {{{_LIGHT}}}\n@media (prefers-color-scheme: dark) {{ :root {{{_DARK}}} }}"
-    return f"<style>{variables}\n{_CSS}</style>"
+def css() -> str:
+    """Global stylesheet (the app always uses its dark theme)."""
+    return f"<style>:root {{{_VARS}}}\n{_CSS}</style>"
 
 
 def term(text: str, key: str) -> str:
@@ -238,9 +264,10 @@ def badge(label: str, large: bool = False) -> str:
             f"{escape(LABEL_DE[label])}</span>")
 
 
-def hero(kicker: str, title: str, subtitle: str, chips: list[str]) -> str:
+def hero(kicker: str, title_html: str, subtitle: str, chips: list[str]) -> str:
+    """Header banner. `title_html` is static markup; wrap a word in <span> to highlight it."""
     chip_html = "".join(f'<span class="chip">{escape(c)}</span>' for c in chips)
-    return (f'<div class="hero"><div><div class="kicker">{escape(kicker)}</div><div class="title">{escape(title)}</div>'
+    return (f'<div class="hero"><div><div class="kicker">{escape(kicker)}</div><div class="title">{title_html}</div>'
             f'<div class="sub">{subtitle}</div></div><div class="chips">{chip_html}</div></div>')
 
 
@@ -273,50 +300,100 @@ def score_meter(score: float, label: str) -> str:
             f'<div class="meter-labels">{"".join(labels)}</div></div>')
 
 
-def distribution_bar(counts: dict[str, int]) -> str:
-    total = sum(counts.values()) or 1
-    segs, legend = [], []
-    for label in LABELS:
-        n = counts.get(label, 0)
-        legend.append(f'<span><span class="dot" style="background:{BASE_COLOR[label]}"></span>'
-                      f'{escape(LABEL_DE[label])} <b>{n}</b> <span class="muted">({n / total:.0%})</span></span>')
-        if n:
-            text = str(n) if n / total >= 0.05 else ""
-            segs.append(f'<div class="seg {CLS[label]}" style="flex:{n};background:{BASE_COLOR[label]}" '
-                        f'title="{escape(LABEL_DE[label])}: {n}">{text}</div>')
-    return f'<div class="dist">{"".join(segs)}</div><div class="dist-legend">{"".join(legend)}</div>'
-
-
 def date_caption(rec: Recommendation) -> str:
     return {BUY: "Verkauf ab ca.", HOLD: "Halten bis ca.", SELL: "Neubewertung ab"}[rec.side]
 
 
-def stock_card(rec: Recommendation) -> str:
-    rows = [f'<div class="row"><span>{date_caption(rec)}</span><b>{fmt_date(rec.horizon_date)}</b></div>']
-    if rec.side == BUY:
-        rows.append(f'<div class="row"><span>Kursziel</span><b>{fmt_price(rec.target_price, rec.currency)} '
-                    f'({fmt_pct(rec.expected_return, 0)})</b></div>')
-        rows.append(f'<div class="row"><span>Stop-Loss</span><b>{fmt_price(rec.stop_loss, rec.currency)}</b></div>')
-    else:
-        rows.append(f'<div class="row"><span>Signal aktiv seit</span><b>{rec.signal_age} Tagen</b></div>')
-    return (f'<div class="card scard" style="border-top-color:{BASE_COLOR[rec.label]}">'
-            f'<div class="top">{badge(rec.label)}<span class="score">{fmt_score(rec.score)}</span></div>'
-            f'<div class="name">{escape(rec.name)}</div>'
-            f'<div class="meta">{escape(rec.ticker)} · {fmt_price(rec.price, rec.currency)}</div>'
-            f'{"".join(rows)}</div>')
+def halal_badge(check: HalalCheck, large: bool = False) -> str:
+    size = " lg" if large else ""
+    text = {"halal": "☪ Halal", "nicht": "✕ Nicht halal", "pruefen": "? Prüfen"}[check.status]
+    tip = escape(" · ".join(check.reasons) or "Geschäftsfeld und Verschuldung erfüllen die Kriterien")
+    return f'<span class="hb {check.status}{size}" title="{tip}">{text}</span>'
 
 
-def detail_header(rec: Recommendation, change_1d: float | None) -> str:
+def sparkline(close: pd.Series, days: int = 63, width: int = 120, height: int = 38) -> str:
+    """Tiny SVG line of the last ~3 months (green if up, red if down)."""
+    values = close.dropna().iloc[-days:].to_numpy(dtype=float)
+    if len(values) < 2:
+        return ""
+    lo, hi = float(values.min()), float(values.max())
+    span = hi - lo or 1.0
+    xs = [i * width / (len(values) - 1) for i in range(len(values))]
+    ys = [height - 3 - (v - lo) / span * (height - 6) for v in values]
+    points = " ".join(f"{x:.1f},{y:.1f}" for x, y in zip(xs, ys))
+    color = "#34d399" if values[-1] >= values[0] else "#f87171"
+    area = f"0,{height} {points} {width},{height}"
+    return (f'<svg width="{width}" height="{height}" viewBox="0 0 {width} {height}" aria-hidden="true">'
+            f'<polygon points="{area}" fill="{color}" opacity=".12"></polygon>'
+            f'<polyline points="{points}" fill="none" stroke="{color}" stroke-width="2" stroke-linejoin="round" '
+            f'stroke-linecap="round"></polyline></svg>')
+
+
+def stock_tile(rec: Recommendation, check: HalalCheck, flag_emoji: str, price_eur: float | None,
+               change_1d: float | None, sector: str, close: pd.Series) -> str:
+    """Card for the discovery grid."""
+    local = "" if rec.currency == "EUR" else fmt_price(rec.price, rec.currency)
+    chg = ""
+    if change_1d is not None:
+        chg = f'<span class="{"up" if change_1d >= 0 else "down"}">{fmt_pct(change_1d)}</span>'
+    sub = " · ".join(x for x in (local, chg) if x)
+    meta = " · ".join(x for x in (escape(rec.ticker), escape(sector)) if x)
+    price = fmt_price(price_eur, "EUR") if price_eur is not None else fmt_price(rec.price, rec.currency)
+    return (f'<div class="card sc">'
+            f'<div class="sc-top"><div><div class="sc-name">{flag_emoji} {escape(rec.name)}</div>'
+            f'<div class="sc-meta">{meta}</div></div>{halal_badge(check)}</div>'
+            f'<div class="sc-mid"><div><div class="sc-price">{price}</div><div class="sc-sub">{sub}</div></div>'
+            f'{sparkline(close)}</div>'
+            f'<div class="sc-bottom">{badge(rec.label)}<span class="sc-score">Score {fmt_score(rec.score)}</span></div>'
+            f'<div class="sc-line">📅 {date_caption(rec)} <b>{fmt_date(rec.horizon_date)}</b></div></div>')
+
+
+def detail_header(rec: Recommendation, change_1d: float | None, check: HalalCheck | None = None,
+                  flag_emoji: str = "", price_eur: float | None = None) -> str:
     chg = ""
     if change_1d is not None:
         cls = "up" if change_1d >= 0 else "down"
         chg = f'<div class="chg {cls}">{fmt_pct(change_1d)} zum Vortag</div>'
+    local = ""
+    if price_eur is not None and rec.currency != "EUR":
+        local = f'<div class="chg muted">{fmt_price(rec.price, rec.currency)}</div>'
+    price = fmt_price(price_eur, "EUR") if price_eur is not None else fmt_price(rec.price, rec.currency)
+    halal = halal_badge(check, large=True) if check else ""
     return (f'<div class="card"><div class="dhead">'
-            f'<div><div class="dname">{escape(rec.name)}</div>'
-            f'<div class="dmeta">{term(rec.ticker, "ticker")} · Stand {fmt_date(rec.as_of)}</div></div>'
+            f'<div><div class="dname">{flag_emoji} {escape(rec.name)}</div>'
+            f'<div class="dmeta">{term(rec.ticker, "ticker")} · Stand {fmt_date(rec.as_of)} {halal}</div></div>'
             f'<div>{badge(rec.label, large=True)}</div>'
-            f'<div><div class="dprice">{fmt_price(rec.price, rec.currency)}</div>{chg}</div>'
+            f'<div><div class="dprice">{price}</div>{local}{chg}</div>'
             f'</div>{score_meter(rec.score, rec.label)}</div>')
+
+
+def halal_card(check: HalalCheck) -> str:
+    rows = [
+        ("Geschäftsfeld", check.business_status, check.business_reason),
+        ("Verschuldung", check.debt_status, check.debt_reason),
+    ]
+    icon = {"halal": "✅", "nicht": "❌", "pruefen": "❔"}
+    items = "".join(f"<li><span>{icon[st]}</span><span><b>{name}:</b> {escape(text)}</span></li>"
+                    for name, st, text in rows)
+    head = {"halal": "Halal-konform", "nicht": "Nicht halal", "pruefen": "Bitte selbst prüfen"}[check.status]
+    return (f'<div class="card hcard {check.status}"><div class="hh"><div class="ht">☪️ Halal-Check: {head}</div>'
+            f'{halal_badge(check)}</div><ul>{items}</ul>'
+            f'<div class="muted" style="font-size:.8rem;margin-top:10px">Vereinfachte Prüfung: Geschäftsfeld + '
+            f'{term("Schuldengrenze 33 %", "halal_schulden")}. Ersetzt keine vollständige Shariah-Prüfung.</div></div>')
+
+
+def pulse(items: list[tuple[str, str, str]], extra: str = "") -> str:
+    """Row of small status cards (label, value, caption); `extra` is appended as another card."""
+    cards = "".join(f'<div class="card"><div class="k">{k}</div><div class="v">{v}</div><div class="s">{sub}</div></div>'
+                    for k, v, sub in items)
+    return f'<div class="pulse">{cards}{extra}</div>'
+
+
+def word_card(key: str) -> str:
+    t = TERMS[key]
+    return (f'<div class="card wotd"><div class="k muted" style="font-size:.8rem">💡 Begriff des Tages</div>'
+            f'<div class="w">{escape(t.title)}</div><div class="muted" style="font-size:.86rem;margin-top:4px">'
+            f'{escape(t.short)}</div></div>')
 
 
 def _trigger(rec: Recommendation, price: float | None, above: bool, outcome: str) -> str:
@@ -443,7 +520,9 @@ def de_gauge(value: float | None) -> str:
     pos = min(max(value, 0.0), 3.0) / 3.0 * 100
     ticks = "".join(f'<span style="left:{v / 3 * 100}%">{fmt_num(v, 0) if v % 1 == 0 else fmt_num(v, 1)}'
                     f'{"+" if v == 3 else ""}</span>' for v in (0, 1, 2, 3))
-    return (f'<div class="gauge"><div class="track">{track}</div><div class="mark" style="left:{pos}%"></div>'
+    limit = MAX_DEBT_TO_EQUITY / 3.0 * 100
+    return (f'<div class="gauge"><div class="limit" style="left:{limit}%"><span>Halal-Grenze 0,33</span></div>'
+            f'<div class="track">{track}</div><div class="mark" style="left:{pos}%"></div>'
             f'<div class="ticks">{ticks}</div></div>')
 
 

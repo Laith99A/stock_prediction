@@ -50,11 +50,19 @@ def test_displayed_score_matches_category():
 
 
 def test_html_components_render_for_every_side(uptrend, downtrend, sideways):
+    from stock_analyzer.fundamentals import Fundamentals
+    from stock_analyzer.halal import check
+
     for df in (uptrend, downtrend, sideways):
         rec = analyze(df, "T", name="Test <AG>")
-        for markup in (ui.stock_card(rec), ui.detail_header(rec, 0.01), ui.action_box(rec), ui.reasons_list(rec.reasons)):
+        halal = check("AAPL", Fundamentals("AAPL", debt_to_equity=0.2))
+        tile = ui.stock_tile(rec, halal, "🇺🇸", 100.0, 0.01, "Technologie", df["Close"])
+        for markup in (tile, ui.detail_header(rec, 0.01, halal, "🇺🇸", 90.0), ui.action_box(rec),
+                       ui.reasons_list(rec.reasons), ui.halal_card(halal)):
             assert markup.count("<div") == markup.count("</div>")
-        assert "Test &lt;AG&gt;" in ui.stock_card(rec)  # names are escaped
+        assert "Test &lt;AG&gt;" in tile  # names are escaped
+        assert "<svg" in tile and "100,00 €" in tile
     for label in LABELS:
         assert ui.badge(label).startswith('<span class="badge')
-    assert "dist" in ui.distribution_bar({label: 1 for label in LABELS})
+    assert ui.sparkline(uptrend["Close"]).count("#34d399") == 2  # rising line is green
+    assert ui.sparkline(uptrend["Close"].iloc[:1]) == ""

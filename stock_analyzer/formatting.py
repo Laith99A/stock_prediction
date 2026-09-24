@@ -19,7 +19,7 @@ def label_text(label: str) -> str:
     """Recommendation with traffic-light icon, e.g. "🟢🟢 Stark kaufen"."""
     return f"{LABEL_ICON[label]} {LABEL_DE[label]}"
 
-_CURRENCY_SYMBOL = {"EUR": "€", "USD": "$", "GBp": "GBp", "CHF": "CHF", "JPY": "¥"}
+_CURRENCY_SYMBOL = {"EUR": "€", "USD": "$", "GBp": "GBp", "CHF": "CHF", "JPY": "¥", "HKD": "HK$"}
 
 
 def _de(number_text: str) -> str:

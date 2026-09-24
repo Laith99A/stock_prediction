@@ -1,8 +1,12 @@
-"""Predefined stock lists (Yahoo Finance tickers), a searchable catalog and name search.
+"""Stock lists for the three markets (USA, Europe, China), a searchable catalog
+and name search. All tickers are Yahoo Finance symbols.
+
+Chinese companies are analysed with the prices of their home listing in Hong
+Kong (or the US listing for NIO and PDD). The same shares are tradable in Europe,
+e.g. on Tradegate, Frankfurt or via neobrokers.
 
 Index memberships change over time; the lists are a starting point and can be
-edited freely. Stocks that are not listed here can still be found through the
-Yahoo Finance search in the app.
+edited freely. Other stocks can be found through the Yahoo Finance search.
 """
 from __future__ import annotations
 
@@ -289,7 +293,6 @@ NASDAQ = {
     "CDNS": "Cadence Design",
     "CRWD": "CrowdStrike",
     "MAR": "Marriott",
-    "ASML": "ASML (ADR)",
     "ORLY": "O'Reilly Automotive",
     "CTAS": "Cintas",
     "CEG": "Constellation Energy",
@@ -330,6 +333,58 @@ NASDAQ = {
     "PDD": "PDD Holdings (Temu)",
 }
 
+CHINA = {
+    "0700.HK": "Tencent",
+    "9988.HK": "Alibaba",
+    "1211.HK": "BYD",
+    "1810.HK": "Xiaomi",
+    "3690.HK": "Meituan",
+    "9618.HK": "JD.com",
+    "9888.HK": "Baidu",
+    "PDD": "PDD Holdings (Temu)",
+    "NIO": "NIO",
+    "2015.HK": "Li Auto",
+    "9868.HK": "XPeng",
+    "9999.HK": "NetEase",
+    "1024.HK": "Kuaishou",
+    "9626.HK": "Bilibili",
+    "9961.HK": "Trip.com",
+    "2020.HK": "Anta Sports",
+    "2331.HK": "Li Ning",
+    "0175.HK": "Geely Automobile",
+    "2333.HK": "Great Wall Motor",
+    "0941.HK": "China Mobile",
+    "0762.HK": "China Unicom",
+    "0728.HK": "China Telecom",
+    "0883.HK": "CNOOC",
+    "0857.HK": "PetroChina",
+    "0386.HK": "Sinopec",
+    "1088.HK": "China Shenhua Energy",
+    "2899.HK": "Zijin Mining",
+    "0981.HK": "SMIC",
+    "0992.HK": "Lenovo",
+    "2382.HK": "Sunny Optical",
+    "0285.HK": "BYD Electronic",
+    "6690.HK": "Haier Smart Home",
+    "9633.HK": "Nongfu Spring",
+    "2319.HK": "China Mengniu Dairy",
+    "0322.HK": "Tingyi (Master Kong)",
+    "0151.HK": "Want Want China",
+    "2269.HK": "WuXi Biologics",
+    "1093.HK": "CSPC Pharmaceutical",
+    "6862.HK": "Haidilao",
+    "2318.HK": "Ping An Insurance",
+    "1398.HK": "ICBC",
+    "0939.HK": "China Construction Bank",
+    "1299.HK": "AIA Group",
+    "0388.HK": "Hong Kong Exchanges (HKEX)",
+    "0168.HK": "Tsingtao Brewery",
+    "0291.HK": "China Resources Beer",
+    "1876.HK": "Budweiser APAC",
+    "0027.HK": "Galaxy Entertainment",
+    "1928.HK": "Sands China",
+}
+
 POPULAR = {
     "AAPL": "Apple",
     "MSFT": "Microsoft",
@@ -343,58 +398,54 @@ POPULAR = {
     "AMD": "AMD",
     "KO": "Coca-Cola",
     "MCD": "McDonald's",
-    "DIS": "Walt Disney",
     "NKE": "Nike",
     "V": "Visa",
-    "BRK-B": "Berkshire Hathaway",
+    "COST": "Costco",
+    "LLY": "Eli Lilly",
     "JPM": "JPMorgan Chase",
-    "COIN": "Coinbase",
-    "BABA": "Alibaba",
+    "0700.HK": "Tencent",
+    "9988.HK": "Alibaba",
+    "1211.HK": "BYD",
+    "1810.HK": "Xiaomi",
     "NIO": "NIO",
-    "BYDDY": "BYD (ADR)",
+    "PDD": "PDD Holdings (Temu)",
     "NOVO-B.CO": "Novo Nordisk",
     "ASML.AS": "ASML",
     "MC.PA": "LVMH",
     "NESN.SW": "Nestlé",
-    "SHEL.L": "Shell",
     "SAP.DE": "SAP",
     "SIE.DE": "Siemens",
     "ALV.DE": "Allianz",
     "RHM.DE": "Rheinmetall",
-    "HAG.DE": "Hensoldt",
-    "R3NK.DE": "Renk",
-    "ENR.DE": "Siemens Energy",
-    "MBG.DE": "Mercedes-Benz",
-    "BMW.DE": "BMW",
-    "VOW3.DE": "Volkswagen (VW)",
-    "P911.DE": "Porsche AG",
-    "DTE.DE": "Deutsche Telekom",
     "IFX.DE": "Infineon",
     "ADS.DE": "adidas",
-    "BAS.DE": "BASF",
-    "BAYN.DE": "Bayer",
-    "LHA.DE": "Lufthansa",
-    "CBK.DE": "Commerzbank",
-    "DBK.DE": "Deutsche Bank",
+    "MBG.DE": "Mercedes-Benz",
+    "BMW.DE": "BMW",
+    "DTE.DE": "Deutsche Telekom",
+    "ZAL.DE": "Zalando",
+    "ABI.BR": "Anheuser-Busch InBev",
+    "PM": "Philip Morris",
 }
 
+USA = {**US_TOP, **{t: n for t, n in NASDAQ.items() if t not in US_TOP}}
+EU = {**DAX, **{t: n for t, n in MDAX.items() if t not in DAX}, **{t: n for t, n in EUROPE.items() if t not in DAX}}
+
 UNIVERSES: dict[str, dict] = {
-    "Beliebte Aktien": {"benchmark": "URTH", "benchmark_name": "MSCI World", "tickers": POPULAR},
-    "DAX 40": {"benchmark": "^GDAXI", "benchmark_name": "DAX", "tickers": DAX},
-    "MDAX (Auswahl)": {"benchmark": "^MDAXI", "benchmark_name": "MDAX", "tickers": MDAX},
-    "Europa (Top-Werte)": {"benchmark": "^STOXX50E", "benchmark_name": "Euro Stoxx 50", "tickers": EUROPE},
-    "USA (Top 100)": {"benchmark": "^GSPC", "benchmark_name": "S&P 500", "tickers": US_TOP},
-    "NASDAQ 100 (Auswahl)": {"benchmark": "^NDX", "benchmark_name": "NASDAQ 100", "tickers": NASDAQ},
+    "Beliebt": {"benchmark": "URTH", "benchmark_name": "MSCI World", "tickers": POPULAR},
+    "USA": {"benchmark": "^GSPC", "benchmark_name": "S&P 500", "tickers": USA},
+    "Europa": {"benchmark": "^STOXX50E", "benchmark_name": "Euro Stoxx 50", "tickers": EU},
+    "China": {"benchmark": "^HSI", "benchmark_name": "Hang Seng", "tickers": CHINA},
+    "Alle Märkte": {"benchmark": "URTH", "benchmark_name": "MSCI World", "tickers": {**USA, **EU, **CHINA}},
 }
+UNIVERSE_ICON = {"Beliebt": "🔥", "USA": "🇺🇸", "Europa": "🇪🇺", "China": "🇨🇳", "Alle Märkte": "🌍"}
 
 BENCHMARKS: dict[str, str] = {
     "URTH": "MSCI World",
-    "^GDAXI": "DAX",
-    "^MDAXI": "MDAX",
-    "^STOXX50E": "Euro Stoxx 50",
     "^GSPC": "S&P 500",
     "^NDX": "NASDAQ 100",
-    "^DJI": "Dow Jones",
+    "^STOXX50E": "Euro Stoxx 50",
+    "^GDAXI": "DAX",
+    "^HSI": "Hang Seng",
 }
 
 # Every stock from all lists: ticker -> name.
@@ -402,6 +453,36 @@ CATALOG: dict[str, str] = {}
 for _universe in UNIVERSES.values():
     for _ticker, _name in _universe["tickers"].items():
         CATALOG.setdefault(_ticker, _name)
+
+MARKET: dict[str, str] = {**{t: "US" for t in USA}, **{t: "EU" for t in EU}, **{t: "CN" for t in CHINA}}
+MARKET_NAME = {"US": "USA", "EU": "Europa", "CN": "China"}
+
+_SUFFIX_FLAG = {
+    "DE": "🇩🇪", "F": "🇩🇪", "PA": "🇫🇷", "AS": "🇳🇱", "MI": "🇮🇹", "MC": "🇪🇸", "BR": "🇧🇪", "HE": "🇫🇮",
+    "SW": "🇨🇭", "L": "🇬🇧", "CO": "🇩🇰", "ST": "🇸🇪", "OL": "🇳🇴", "VI": "🇦🇹", "LS": "🇵🇹", "IR": "🇮🇪",
+    "HK": "🇨🇳", "SS": "🇨🇳", "SZ": "🇨🇳", "T": "🇯🇵", "TO": "🇨🇦", "AX": "🇦🇺",
+}
+
+
+def market_of(ticker: str) -> str:
+    """US, EU or CN (unknown tickers are guessed from the exchange suffix)."""
+    if ticker in MARKET:
+        return MARKET[ticker]
+    suffix = ticker.rsplit(".", 1)[1].upper() if "." in ticker else ""
+    if suffix in ("HK", "SS", "SZ"):
+        return "CN"
+    if suffix and suffix not in ("T", "TO", "AX"):
+        return "EU"
+    return "US"
+
+
+def flag(ticker: str) -> str:
+    """Country flag of the listing (Chinese companies: 🇨🇳)."""
+    if MARKET.get(ticker) == "CN":
+        return "🇨🇳"
+    suffix = ticker.rsplit(".", 1)[1].upper() if "." in ticker else ""
+    return _SUFFIX_FLAG.get(suffix, "🇺🇸" if not suffix else "🌐")
+
 
 # Other names people commonly search for.
 ALIASES: dict[str, str] = {
@@ -418,9 +499,13 @@ ALIASES: dict[str, str] = {
     "munich re": "MUV2.DE",
     "microstrategy": "MSTR",
     "temu": "PDD",
+    "pinduoduo": "PDD",
     "zara": "ITX.MC",
     "raytheon": "RTX",
     "john deere": "DE",
+    "wechat": "0700.HK",
+    "aliexpress": "9988.HK",
+    "taobao": "9988.HK",
 }
 
 

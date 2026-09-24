@@ -1,18 +1,57 @@
-# 📈 Aktien-Analyzer – Kaufen · Halten · Verkaufen
+# ☪️ Aktien-Kompass – halal investieren, einfach verstehen
 
-Eine App, die Aktien analysiert und jede Aktie in eine von fünf Stufen einordnet – von **Stark kaufen**
-bis **Stark verkaufen**. Jeder Fachbegriff wird direkt in der App erklärt.
+Eine App für junge Einsteiger (18–25), die **halal-konforme Aktien** aus den **USA, Europa und China** findet,
+jede Aktie in eine von fünf Stufen einordnet und dabei **jeden Begriff erklärt** – damit du die Sprache der
+Investoren lernst.
 
 | Einstufung | Signal-Score | Was die App zusätzlich angibt |
 |---|---|---|
 | 🟢🟢 **Stark kaufen** (Strong Buy) | ab +55 | wie bei Kaufen |
-| 🟢 **Kaufen** (Buy) | +25 bis +55 | **Ab wann der Verkauf empfohlen ist** (Datum), dazu ein **Kursziel** (früher verkaufen, wenn es erreicht ist), ein **Stop-Loss** (sofort verkaufen, wenn der Kurs darunter fällt) und eine Frühwarn-Schwelle, ab der das Kaufsignal endet |
-| 🟡 **Halten** (Hold) | −25 bis +25 | **Bis ungefähr wann** halten (Datum der nächsten Neubewertung), dazu die Kurse, ab denen ein Kauf- bzw. Verkaufssignal entstehen würde |
+| 🟢 **Kaufen** (Buy) | +25 bis +55 | **Ab wann der Verkauf empfohlen ist** (Datum), dazu **Kursziel**, **Stop-Loss** und eine Frühwarn-Schwelle |
+| 🟡 **Halten** (Hold) | −25 bis +25 | **Bis ungefähr wann** halten, dazu die Kurse, ab denen ein Kauf- bzw. Verkaufssignal entstehen würde |
 | 🔴 **Verkaufen** (Sell) | −55 bis −25 | Frühester Zeitpunkt für eine Neubewertung und der Kurs, über dem das Verkaufssignal endet |
 | 🔴🔴 **Stark verkaufen** (Strong Sell) | bis −55 | wie bei Verkaufen |
 
-> ⚠️ **Keine Anlageberatung.** Die App wertet ausschließlich die Kurshistorie technisch aus. Alle Kursziele und
-> Termine sind grobe Richtwerte, keine Garantie für künftige Kurse.
+> ⚠️ **Keine Anlageberatung.** Die Empfehlung beruht auf der technischen Analyse des Kursverlaufs, der Halal-Check
+> ist eine vereinfachte Prüfung. Alle Kursziele und Termine sind Richtwerte.
+
+## ☪️ Halal-Check
+
+Eine Aktie gilt als **✅ halal**, wenn beide Kriterien erfüllt sind:
+
+1. **Geschäftsfeld:** kein Alkohol, Tabak, Waffen/Rüstung, Glücksspiel/Wetten, keine Banken und Kreditgeschäfte
+   (Zinsen), keine konventionellen Versicherungen, kein Schweinefleisch und keine Erwachsenenunterhaltung.
+   Grenzfälle, die Gelehrte unterschiedlich bewerten (Musik-/Filmunterhaltung, Krypto, kleine Rüstungsanteile,
+   Hotels mit Alkohol), stehen auf **❔ Prüfen**. Die Aktien der App-Listen sind von Hand eingeordnet, andere
+   Aktien über die Branche von Yahoo Finance.
+2. **Schulden:** **Debt-to-Equity ≤ 0,33** (Schulden höchstens 33 % des Eigenkapitals). Fehlen die Daten, steht
+   die Aktie auf **❔ Prüfen**.
+
+Hinweise: Vollständige Shariah-Screenings prüfen zusätzlich z. B. Zinseinnahmen und Bargeldbestände. Viele
+islamische Indizes messen die Schulden am Börsenwert statt am Eigenkapital – die Regel der App ist strenger.
+
+## Was die App kann
+
+- **Märkte:** 🔥 Beliebt, 🇺🇸 USA (137 Aktien), 🇪🇺 Europa (126), 🇨🇳 China (49, in Europa handelbar – analysiert mit
+  den Kursen der Börse Hongkong), 🌍 Alle Märkte (311) oder ⭐ eine eigene Liste mit Namen oder Kürzeln.
+- **🏠 Entdecken:** Aktien als Karten (Preis in €, Mini-Chart der letzten 3 Monate, Halal-Plakette, Empfehlung)
+  oder als Tabelle mit KGV, KBV und Debt-to-Equity. Filter für **Preis pro Aktie** (< 20 €, < 50 €, < 100 €),
+  **Halal** (nur halal / + prüfen / alle), **Empfehlung**, **Risiko** (ruhig/mittel/wild nach Schwankung),
+  **Branche**, **nur mit Dividende**, dazu Suche und Sortierung. Alle Preise werden in Euro umgerechnet.
+- **🔎 Analyse:** Suche nach Name oder Kürzel („Alphabet“, „Tencent“, „SAP“). Pro Aktie:
+  - **🧾 Überblick:** Halal-Check, Empfehlung im Klartext („Was heißt das für dich?“), wichtigste Zahlen,
+    Kurschart mit Kursziel/Stop-Loss/Datum.
+  - **📊 Kennzahlen:** KGV, KBV, KUV, PEG, EV/EBITDA, **Debt-to-Equity** (mit Halal-Grenze), Liquidität,
+    Eigenkapitalrendite, Margen, Wachstum, Dividende, Beta, Börsenwert – mit Ampel und Faustregel.
+  - **🧭 Chart-Leser:** zählt Zeichen für steigende (bullish) und fallende (bearish) Kurse und markiert sie im
+    Chart; dazu Volumen, RSI und MACD.
+  - **🔬 Hintergrund:** Begründung, sieben Faktoren, Score-Verlauf, Rückblick.
+- **🎓 Lernen:** 📚 Chart-Schule (8 Lektionen mit Beispiel-Charts), 📖 Lexikon mit fast 80 Begriffen – inklusive
+  **💬 Investor-Sprache** (Bullish/Bearish, Buy the Dip, ATH, FOMO, HODL, ETF, Sparplan …) und **☪️ Halal
+  investieren** (Riba, Purification, Schuldengrenze …) – und ein 🧠 Quiz. Auf der Startseite gibt es jeden Tag
+  einen **Begriff des Tages**.
+- Unterstrichene Wörter und ⓘ-Symbole erklären Begriffe direkt beim Darüberfahren.
+- Dunkles Design ohne Seitenleiste; Einstellungen (Datenquelle, Historie) unter ⚙️.
 
 ## Installation
 
@@ -41,51 +80,22 @@ python -m pip install -r requirements.txt
 
 ## Starten
 
-**Web-App** (öffnet sich im Browser unter http://localhost:8501):
-
 ```bash
 streamlit run app.py
 ```
 
-- **Aktienlisten** (links): Beliebte Aktien, DAX 40, MDAX, Europa, USA Top 100, NASDAQ 100 – zusammen über
-  250 Aktien – oder eine eigene Liste mit Namen oder Kürzeln („Alphabet, SAP, Tesla“).
-- **🏠 Marktübersicht:** Markttrend des Index, Verteilung der fünf Empfehlungen, Karten mit den Top-Chancen und
-  größten Warnsignalen und eine filterbare Tabelle aller Aktien (Klick auf eine Zeile öffnet die Details).
-  Export als CSV.
-- **🔎 Aktie analysieren:** Suche nach Name oder Kürzel („Alphabet“, „Google“, „SAP“). Nicht in den Listen?
-  Einfach den Namen eintippen und mit Enter bestätigen – dann sucht die App bei Yahoo Finance. Du siehst die
-  Empfehlung im Klartext („Was heißt das für dich?“), wichtige Kennzahlen, Chart mit Kursziel/Stop-Loss/Datum,
-  die Begründung, die sieben Faktoren, den Score-Verlauf und einen Rückblick auf die frühere Trefferquote.
-  Die Detailansicht hat vier Bereiche:
-  - **🧾 Überblick:** Empfehlung, wichtigste Zahlen, Kurschart mit Prognose.
-  - **📊 Kennzahlen:** KGV, erwartetes KGV, PEG, KBV, KUV, EV/EBITDA, **Verschuldungsgrad (Debt-to-Equity)**,
-    Liquidität, Eigenkapitalrendite, Nettomarge, Umsatz- und Gewinnwachstum, Dividendenrendite,
-    Ausschüttungsquote, Beta, Börsenwert und Analysten-Kursziel – jeweils mit Ampel und Faustregel.
-  - **🧭 Chart-Leser:** Die App liest den Chart und listet die Zeichen für steigende bzw. fallende Kurse
-    (Trend, 50/200-Tage-Linie, Golden/Death Cross, Unterstützung/Widerstand, Ausbruch, Volumen, RSI, MACD),
-    markiert sie im Chart und zeigt Volumen, RSI und MACD.
-  - **🔬 Hintergrund:** Begründung, die sieben Faktoren, Score-Verlauf und Rückblick.
-  Unter jedem Chart erklärt „📖 Wie lese ich diesen Chart?“ die Linien und Farben.
-- **📚 Chart-Schule:** 8 kurze Lektionen mit Beispiel-Charts – Charts lesen, Trends, 50/200-Tage-Linie,
-  Unterstützung & Ausbruch, Volumen, RSI, MACD und die Diagramme der App – plus eine Checkliste, woran man
-  steigende oder fallende Kurse erkennt.
-- **📖 Lexikon:** Alle Begriffe (Volatilität, KGV, Debt-to-Equity, RSI, Stop-Loss …) einfach erklärt und
-  durchsuchbar. Dieselben Erklärungen erscheinen als Tooltip, wenn du über ⓘ-Symbole oder unterstrichene
-  Begriffe fährst.
-- Der Schalter „📊 Kennzahlen in der Übersicht“ (links) ergänzt die Tabelle um KGV, KBV und Debt-to-Equity.
-- Hell- und Dunkelmodus folgen der Einstellung deines Systems (oder dem Menü ⋮ → Settings).
-- Ohne Internet: Datenquelle „Demo-Daten (offline)“ wählen (simulierte Kurse zum Ausprobieren).
+Die App öffnet sich im Browser unter http://localhost:8501. Ohne Internet: ⚙️ Einstellungen → „Demo-Daten (offline)“
+(simulierte Kurse und Kennzahlen zum Ausprobieren). Beim ersten Laden eines Marktes holt die App die Kennzahlen
+aller Aktien (für den Halal-Check) – das dauert einmalig bis zu einer Minute.
 
 **Kommandozeile:**
 
 ```bash
-python -m stock_analyzer                          # DAX 40
-python -m stock_analyzer Alphabet SAP NVDA --index ^GSPC
-python -m stock_analyzer --liste "USA (Top 100)" --details
+python -m stock_analyzer                          # Liste „Beliebt“
+python -m stock_analyzer Alphabet SAP Tencent --index ^GSPC
+python -m stock_analyzer --liste China --nur-halal   # nur halal-konforme Aktien
 python -m stock_analyzer --demo                   # ohne Internet
 ```
-
-Ticker im Yahoo-Finance-Format: deutsche Aktien mit `.DE` (z. B. `SAP.DE`, `BMW.DE`), US-Aktien ohne Endung.
 
 ## So funktioniert die Analyse
 
@@ -113,19 +123,22 @@ Details stehen auch im Tab „⚙️ So funktioniert's“ der App.
 ```
 app.py                         Streamlit-Oberfläche
 stock_analyzer/
-  data.py                      Kursdaten (Yahoo Finance, Demo-Daten)
+  data.py                      Kursdaten (Yahoo Finance, Demo-Daten) und Namenssuche
+  universes.py                 Märkte USA/Europa/China, Katalog, Flaggen, Suche
+  halal.py                     Halal-Check (Geschäftsfeld + Debt-to-Equity ≤ 0,33)
+  fx.py                        Umrechnung in Euro
   indicators.py                Technische Indikatoren (SMA, RSI, MACD, ATR, …)
   scoring.py                   Faktoren, Score, Einstufung, Preis-Schwellen
   recommendation.py            Empfehlung inkl. Verkaufsdatum, Kursziel, Stop-Loss, Haltedauer
-  market.py                    Analyse einer ganzen Aktienliste + Marktumfeld
+  fundamentals.py              Kennzahlen (KGV, KBV, Debt-to-Equity …) und Ampel-Bewertung
+  chart_reader.py              Chart-Leser: Zeichen für steigende/fallende Kurse
+  chart_school.py              Lektionen der Chart-Schule
+  learning.py                  Begriff des Tages und Quiz
+  glossary.py                  Lexikon: Erklärungen für alle Begriffe
+  market.py                    Analyse einer ganzen Liste + Marktumfeld
   backtest.py                  Rückblick auf die historische Signalqualität
   charts.py                    Diagramme
-  fundamentals.py              Kennzahlen (KGV, KBV, Debt-to-Equity …) und ihre Ampel-Bewertung
-  chart_reader.py              Chart-Leser: erkennt Zeichen für steigende/fallende Kurse
-  chart_school.py              Lektionen der Chart-Schule mit Beispieldaten
-  ui.py                        Oberflächen-Bausteine (Karten, Score-Skala, Tooltips, CSS)
-  glossary.py                  Lexikon: Erklärungen für alle Begriffe
-  universes.py                 Aktienlisten, Katalog und Namenssuche
+  ui.py                        Design: CSS, Karten, Plaketten, Score-Skala, Tooltips
   __main__.py                  Kommandozeilen-Version
 tests/                         Tests (pytest)
 ```

@@ -2,32 +2,20 @@
 # Skip Streamlit's first-run email prompt so the app starts and opens the browser directly.
 showEmailPrompt = false
 
+[client]
+# Hide the developer toolbar ("Deploy" button) for a clean app look.
+toolbarMode = "minimal"
+
 [theme]
+base = "dark"
+primaryColor = "#8b7bff"
+backgroundColor = "#0a0e17"
+secondaryBackgroundColor = "#151d2e"
+textColor = "#e8ecf4"
+borderColor = "#1f2a3f"
+dataframeHeaderBackgroundColor = "#151d2e"
 font = "Inter:https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap, sans-serif"
-headingFont = "Inter:https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap, sans-serif"
-baseRadius = "0.75rem"
-buttonRadius = "0.6rem"
+headingFont = "Space Grotesk:https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap, sans-serif"
+baseRadius = "0.8rem"
+buttonRadius = "0.75rem"
 showWidgetBorder = true
-headingFontWeights = [800, 750, 700, 700, 600, 600]
-
-[theme.light]
-primaryColor = "#1f6feb"
-backgroundColor = "#f5f7fb"
-secondaryBackgroundColor = "#e9eef6"
-textColor = "#101828"
-borderColor = "#dfe5ee"
-dataframeHeaderBackgroundColor = "#eef2f8"
-
-[theme.light.sidebar]
-backgroundColor = "#ffffff"
-
-[theme.dark]
-primaryColor = "#4c8dff"
-backgroundColor = "#0b1220"
-secondaryBackgroundColor = "#131d31"
-textColor = "#e6ebf5"
-borderColor = "#243049"
-dataframeHeaderBackgroundColor = "#131d31"
-
-[theme.dark.sidebar]
-backgroundColor = "#0f1729"
