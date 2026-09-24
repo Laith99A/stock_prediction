@@ -5,17 +5,29 @@ import argparse
 import sys
 
 from .data import SyntheticProvider, YahooProvider
-from .formatting import fmt_date, fmt_pct, fmt_price
+from .formatting import fmt_date, fmt_pct, fmt_price, fmt_score
 from .market import scan
 from .scoring import BUY, HOLD
-from .universes import UNIVERSES
+from .universes import CATALOG, UNIVERSES, search_catalog
+
+
+def resolve_names(entries: list[str]) -> dict[str, str]:
+    """Accept tickers or company names ("Alphabet" -> GOOGL)."""
+    out = {}
+    for entry in entries:
+        hits = search_catalog(entry, 1)
+        if hits and (entry.upper() not in CATALOG or hits[0][0] == entry.upper()):
+            out[hits[0][0]] = hits[0][1]
+        else:
+            out[entry.upper()] = CATALOG.get(entry.upper(), entry.upper())
+    return out
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="python -m stock_analyzer",
                                      description="Stuft Aktien als Kaufen, Halten oder Verkaufen ein.")
     parser.add_argument("tickers", nargs="*", help="Yahoo-Ticker, z. B. AAPL SAP.DE (ohne Angabe: --liste)")
-    parser.add_argument("--liste", default="DAX", choices=list(UNIVERSES), help="vordefinierte Aktienliste")
+    parser.add_argument("--liste", default="DAX 40", choices=list(UNIVERSES), help="vordefinierte Aktienliste")
     parser.add_argument("--index", help="Vergleichsindex, z. B. ^GDAXI oder ^GSPC")
     parser.add_argument("--zeitraum", default="5y", choices=["2y", "5y", "10y"], help="Historie für die Analyse")
     parser.add_argument("--demo", action="store_true", help="simulierte Kurse statt Yahoo Finance")
@@ -23,7 +35,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     universe = UNIVERSES[args.liste]
-    tickers = {t.upper(): t.upper() for t in args.tickers} if args.tickers else universe["tickers"]
+    tickers = resolve_names(args.tickers) if args.tickers else universe["tickers"]
     benchmark = args.index or universe["benchmark"]
     benchmark_name = args.index or universe["benchmark_name"]
     provider = SyntheticProvider() if args.demo else YahooProvider()
@@ -34,11 +46,11 @@ def main(argv: list[str] | None = None) -> int:
         print(f"Marktumfeld {r.name}: {r.label} (1 Monat {fmt_pct(r.perf_1m)}, 3 Monate {fmt_pct(r.perf_3m)})\n")
     for rec in result.recommendations:
         price = fmt_price(rec.price, rec.currency)
-        head = f"{rec.label_de:<9} {rec.ticker:<9} {rec.name[:22]:<22} {price:>13}  Score {rec.score:+4.0f}"
-        if rec.label == BUY:
+        head = f"{rec.label_de:<15} {rec.ticker:<9} {rec.name[:22]:<22} {price:>13}  Score {fmt_score(rec.score):>4}"
+        if rec.side == BUY:
             detail = (f"Verkauf ab ca. {fmt_date(rec.horizon_date)} · Kursziel {fmt_price(rec.target_price, rec.currency)} "
                       f"({fmt_pct(rec.expected_return)}) · Stop-Loss {fmt_price(rec.stop_loss, rec.currency)}")
-        elif rec.label == HOLD:
+        elif rec.side == HOLD:
             detail = f"Halten bis ca. {fmt_date(rec.horizon_date)}"
             if rec.upper_trigger:
                 detail += f" · Kaufsignal über {fmt_price(rec.upper_trigger, rec.currency)}"

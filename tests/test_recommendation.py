@@ -8,12 +8,12 @@ from stock_analyzer.recommendation import (
     days_to_threshold,
     empirical_remaining,
 )
-from stock_analyzer.scoring import BUY, HOLD, SELL
+from stock_analyzer.scoring import BUY, HOLD, SELL, STRONG_BUY, STRONG_SELL
 
 
 def test_buy_has_target_stop_and_sell_date(uptrend):
     rec = analyze(uptrend, "UP", currency="EUR")
-    assert rec.label == BUY
+    assert rec.side == BUY and rec.label in (BUY, STRONG_BUY)
     assert rec.target_price > rec.price > rec.stop_loss > 0
     assert rec.target_price - rec.price >= 3 * rec.atr - 1e-9
     lo, hi = HORIZON_LIMITS[BUY]
@@ -25,14 +25,15 @@ def test_buy_has_target_stop_and_sell_date(uptrend):
 
 def test_sell_has_no_target(downtrend):
     rec = analyze(downtrend, "DOWN")
-    assert rec.label == SELL
+    assert rec.side == SELL and rec.label == STRONG_SELL
+    assert rec.label_text == "🔴🔴 Stark verkaufen"
     assert rec.target_price is None and rec.stop_loss is None
     assert rec.upper_trigger is None or rec.upper_trigger >= rec.price
 
 
 def test_hold_has_horizon_and_triggers(sideways):
     rec = analyze(sideways, "FLAT")
-    assert rec.label == HOLD
+    assert rec.side == rec.label == HOLD
     lo, hi = HORIZON_LIMITS[HOLD]
     assert lo <= rec.horizon_days <= hi
     assert rec.target_price is None

@@ -9,7 +9,16 @@ from . import indicators as ind
 from .backtest import StrategyResult
 from .formatting import fmt_date, fmt_price
 from .recommendation import Recommendation
-from .scoring import BUY, BUY_THRESHOLD, HOLD, SELL, SELL_THRESHOLD
+from .scoring import (
+    BUY,
+    BUY_THRESHOLD,
+    HOLD,
+    SELL,
+    SELL_THRESHOLD,
+    STRONG_BUY_THRESHOLD,
+    STRONG_SELL_THRESHOLD,
+)
+from .ui import BASE_COLOR
 
 SHORT_LABELS = {
     "trend": "Trend",
@@ -82,7 +91,7 @@ def price_chart(df: pd.DataFrame, rec: Recommendation, pal: dict, months: int = 
 
     start = rec.as_of - pd.DateOffset(months=months)
     end = rec.horizon_date + pd.offsets.BDay(5)
-    horizon_label = {BUY: "Verkauf ab ca.", HOLD: "Halten bis ca.", SELL: "Neubewertung ca."}[rec.label]
+    horizon_label = {BUY: "Verkauf ab ca.", HOLD: "Halten bis ca.", SELL: "Neubewertung ca."}[rec.side]
     fig.add_vline(x=rec.horizon_date, line=dict(color=pal["muted"], width=1.5, dash="dot"))
     fig.add_annotation(x=rec.horizon_date, y=1, yref="paper", yanchor="bottom", showarrow=False,
                        text=f"{horizon_label} {fmt_date(rec.horizon_date)}", font=dict(color=pal["text"], size=12))
@@ -97,12 +106,12 @@ def price_chart(df: pd.DataFrame, rec: Recommendation, pal: dict, months: int = 
 
     level(rec.target_price, pal["good"], "▲ Kursziel")
     level(rec.stop_loss, pal["critical"], "▼ Stop-Loss")
-    if rec.label == HOLD:
+    if rec.side == HOLD:
         level(rec.upper_trigger, pal["muted"], "Kaufsignal", "dot")
         level(rec.lower_trigger, pal["muted"], "Verkaufssignal", "dot")
-    elif rec.label == BUY:
+    elif rec.side == BUY:
         level(rec.lower_trigger, pal["muted"], "Signalende", "dot")
-    elif rec.label == SELL:
+    elif rec.side == SELL:
         level(rec.upper_trigger, pal["muted"], "Signalende", "dot")
 
     fig.add_trace(go.Scatter(x=[rec.as_of], y=[rec.price], mode="markers", name="Aktuell",
@@ -124,17 +133,24 @@ def score_chart(scores: pd.DataFrame, pal: dict, months: int = 24) -> go.Figure:
     data = scores["signal"].dropna()
     data = data.loc[data.index[-1] - pd.DateOffset(months=months):]
     fig = go.Figure()
-    fig.add_hrect(y0=BUY_THRESHOLD, y1=100, fillcolor=pal["good"], opacity=0.08, line_width=0)
-    fig.add_hrect(y0=-100, y1=SELL_THRESHOLD, fillcolor=pal["critical"], opacity=0.08, line_width=0)
-    for y, text in ((BUY_THRESHOLD, "Kaufen ab +25"), (SELL_THRESHOLD, "Verkaufen ab −25")):
+    zones = [
+        ("STRONG_BUY", STRONG_BUY_THRESHOLD, 100, "Stark kaufen", 0.12),
+        ("BUY", BUY_THRESHOLD, STRONG_BUY_THRESHOLD, "Kaufen", 0.08),
+        ("HOLD", SELL_THRESHOLD, BUY_THRESHOLD, "Halten", 0.06),
+        ("SELL", STRONG_SELL_THRESHOLD, SELL_THRESHOLD, "Verkaufen", 0.08),
+        ("STRONG_SELL", -100, STRONG_SELL_THRESHOLD, "Stark verkaufen", 0.12),
+    ]
+    for label, lo, hi, text, opacity in zones:
+        fig.add_hrect(y0=lo, y1=hi, fillcolor=BASE_COLOR[label], opacity=opacity, line_width=0)
+        fig.add_annotation(x=1.005, xref="paper", y=(lo + hi) / 2, xanchor="left", showarrow=False, text=text,
+                           font=dict(color=pal["text"], size=11))
+    for y in (STRONG_BUY_THRESHOLD, BUY_THRESHOLD, SELL_THRESHOLD, STRONG_SELL_THRESHOLD):
         fig.add_hline(y=y, line=dict(color=pal["muted"], width=1, dash="dash"))
-        fig.add_annotation(x=1, xref="paper", y=y, xanchor="right", yanchor="bottom" if y > 0 else "top",
-                           showarrow=False, text=text, font=dict(color=pal["text"], size=11),
-                           bgcolor=pal["surface"], opacity=0.9)
     fig.add_trace(go.Scatter(x=data.index, y=data, name="Signal-Score", line=dict(color=pal["series"][0], width=2),
                              hovertemplate="%{y:.0f}", showlegend=False))
-    _base_layout(fig, pal, 300)
-    fig.update_yaxes(range=[-100, 100], title=None, tickvals=[-100, -50, -25, 0, 25, 50, 100])
+    _base_layout(fig, pal, 320)
+    fig.update_layout(margin=dict(l=8, r=110, t=16, b=8))
+    fig.update_yaxes(range=[-100, 100], title=None, tickvals=[-100, -55, -25, 0, 25, 55, 100])
     return fig
 
 

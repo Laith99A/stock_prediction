@@ -116,18 +116,19 @@ def recommendations_table(recs: list[Recommendation]) -> pd.DataFrame:
             {
                 "Ticker": r.ticker,
                 "Name": r.name,
+                "Empfehlung": r.label_text,
+                "Score": r.score,
+                # Buy side: sell from this date · Hold: hold until · Sell side: re-evaluate from
+                "Datum": r.horizon_date,
                 "Kurs": r.price,
                 "Währung": r.currency,
-                "Score": r.score,
-                "Empfehlung": r.label_de,
+                "Kursziel": r.target_price,
+                "Potenzial": r.expected_return,
+                "Stop-Loss": r.stop_loss,
                 "Signalstärke": r.strength,
                 "Seit (Tage)": r.signal_age,
-                # BUY: sell from this date · HOLD: hold until · SELL: re-evaluate from
-                "Datum": r.horizon_date,
-                "Kursziel": r.target_price,
-                "Stop-Loss": r.stop_loss,
-                "Potenzial": r.expected_return,
                 "Tendenz": r.tendency,
+                "Label": r.label,
             }
         )
     return pd.DataFrame(rows)

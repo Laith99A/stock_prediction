@@ -1,4 +1,5 @@
-"""Composite score (-100 … +100) and Buy/Hold/Sell classification.
+"""Composite score (-100 … +100) and five-level classification
+(Strong Buy / Buy / Hold / Sell / Strong Sell).
 
 Every factor is mapped to the range [-1, 1] (positive = bullish). The raw score
 is the weighted average of all available factors times 100. The signal score is
@@ -12,12 +13,21 @@ import pandas as pd
 
 from . import indicators as ind
 
+STRONG_BUY = "STRONG_BUY"
 BUY = "BUY"
 HOLD = "HOLD"
 SELL = "SELL"
+STRONG_SELL = "STRONG_SELL"
+LABELS = [STRONG_BUY, BUY, HOLD, SELL, STRONG_SELL]
 
+# The "side" groups the strong variants with their normal counterpart: a stock
+# that goes from Strong Buy to Buy is still a buy and should not be sold.
+SIDE = {STRONG_BUY: BUY, BUY: BUY, HOLD: HOLD, SELL: SELL, STRONG_SELL: SELL}
+
+STRONG_BUY_THRESHOLD = 55.0
 BUY_THRESHOLD = 25.0
 SELL_THRESHOLD = -25.0
+STRONG_SELL_THRESHOLD = -55.0
 SMOOTHING_SPAN = 5
 
 WEIGHTS: dict[str, float] = {
@@ -121,8 +131,12 @@ def market_component(index: pd.Index, benchmark: pd.Series | None) -> pd.Series:
 def classify(signal: float) -> str | None:
     if signal is None or not np.isfinite(signal):
         return None
+    if signal >= STRONG_BUY_THRESHOLD:
+        return STRONG_BUY
     if signal >= BUY_THRESHOLD:
         return BUY
+    if signal <= STRONG_SELL_THRESHOLD:
+        return STRONG_SELL
     if signal <= SELL_THRESHOLD:
         return SELL
     return HOLD
@@ -161,6 +175,7 @@ def compute_scores(df: pd.DataFrame, benchmark: pd.Series | None = None) -> pd.D
     out["signal"] = out["raw"].ewm(span=SMOOTHING_SPAN, adjust=False, ignore_na=True).mean()
     out["signal"] = out["signal"].where(out["raw"].notna())
     out["label"] = [classify(v) for v in out["signal"]]
+    out["side"] = out["label"].map(SIDE)
     return out
 
 

@@ -88,6 +88,34 @@ class YahooProvider:
         return split_download(raw, tickers)
 
 
+def search_yahoo(query: str, max_results: int = 8) -> list[dict[str, str]]:
+    """Look up stocks and ETFs by company name or ticker on Yahoo Finance.
+
+    Returns dicts with "ticker", "name" and "exchange"; an empty list if nothing
+    was found or Yahoo is unreachable.
+    """
+    import yfinance as yf
+
+    try:
+        result = yf.Search(query, max_results=max_results, news_count=0, lists_count=0,
+                           include_cb=False, recommended=0, raise_errors=False)
+        quotes = result.quotes or []
+    except Exception:
+        return []
+    out = []
+    for quote in quotes:
+        if quote.get("quoteType") not in ("EQUITY", "ETF"):
+            continue
+        out.append(
+            {
+                "ticker": quote["symbol"],
+                "name": quote.get("longname") or quote.get("shortname") or quote["symbol"],
+                "exchange": quote.get("exchDisp") or quote.get("exchange", ""),
+            }
+        )
+    return out
+
+
 class SyntheticProvider:
     """Deterministic, regime-switching random prices for offline demos and tests.
 

@@ -1,10 +1,14 @@
 """Turns scores into a concrete recommendation.
 
-* BUY  → take-profit target, stop-loss and the date from which selling is
-         recommended (time exit), plus the price below which the buy signal ends.
-* HOLD → approximate date until which to hold (next re-evaluation) and the
-         price levels that would turn the signal into BUY or SELL.
-* SELL → the price level at which the sell signal would end.
+The label has five levels (Strong Buy … Strong Sell). Dates, targets and price
+triggers depend only on the *side* (buy / hold / sell), because a Strong Buy
+that weakens to Buy is still a position to keep.
+
+* Buy side  → take-profit target, stop-loss and the date from which selling is
+              recommended (time exit), plus the price below which the buy signal ends.
+* Hold      → approximate date until which to hold (next re-evaluation) and the
+              price levels that would turn the signal into Buy or Sell.
+* Sell side → the price level at which the sell signal would end.
 
 Durations are estimated from two sources and averaged:
 1. how long signals of the same kind lasted in this stock's own history
@@ -20,7 +24,7 @@ import numpy as np
 import pandas as pd
 
 from . import indicators as ind
-from .formatting import LABEL_DE, fmt_num, fmt_pct
+from .formatting import LABEL_DE, fmt_num, fmt_pct, label_text
 from .scoring import (
     BUY,
     BUY_THRESHOLD,
@@ -54,6 +58,7 @@ class Recommendation:
     as_of: pd.Timestamp
     price: float
     label: str
+    side: str
     score: float
     raw_score: float
     components: dict[str, float]
@@ -75,6 +80,10 @@ class Recommendation:
     @property
     def label_de(self) -> str:
         return LABEL_DE[self.label]
+
+    @property
+    def label_text(self) -> str:
+        return label_text(self.label)
 
     @property
     def expected_return(self) -> float | None:
@@ -285,10 +294,11 @@ def analyze(
 
     last = valid.iloc[-1]
     label = str(last["label"])
+    side = str(last["side"])
     score = float(last["signal"])
     components = {k: float(last[k]) for k in WEIGHTS}
-    labels = valid["label"]
-    signal_age = _runs(labels)[-1][1]
+    sides = valid["side"]
+    signal_age = _runs(sides)[-1][1]
 
     close = df["Close"]
     price = float(close.iloc[-1])
@@ -300,7 +310,7 @@ def analyze(
     log_returns = np.log(close).diff()
     volatility = float(log_returns.iloc[-60:].std() * np.sqrt(252))
 
-    horizon_days, horizon_basis = estimate_horizon(label, labels, valid["signal"])
+    horizon_days, horizon_basis = estimate_horizon(side, sides, valid["signal"])
     horizon_date = as_of + pd.offsets.BDay(horizon_days)
     slope = score_slope(valid["signal"])
 
@@ -311,10 +321,11 @@ def analyze(
         as_of=as_of,
         price=price,
         label=label,
+        side=side,
         score=score,
         raw_score=float(last["raw"]),
         components=components,
-        strength=signal_strength(label, score, components),
+        strength=signal_strength(side, score, components),
         signal_age=signal_age,
         horizon_days=horizon_days,
         horizon_date=horizon_date,
@@ -326,19 +337,19 @@ def analyze(
         reasons=_reasons(df, components, benchmark),
     )
 
-    if label == BUY:
+    if side == BUY:
         drift = min(max(daily_drift, 0.0) * DRIFT_SHRINK, MAX_ANNUAL_DRIFT / 252)
         rec.target_price = max(price * math.exp(drift * horizon_days), price + MIN_TARGET_ATR * atr)
         rec.stop_loss = max(price - STOP_ATR * atr, 0.01 * price)
 
     if with_triggers:
         step = 0.5 * atr
-        if label in (BUY, HOLD):
+        if side in (BUY, HOLD):
             rec.lower_trigger = price_for_threshold(
-                df, benchmark, BUY_THRESHOLD if label == BUY else SELL_THRESHOLD, "down", step
+                df, benchmark, BUY_THRESHOLD if side == BUY else SELL_THRESHOLD, "down", step
             )
-        if label in (HOLD, SELL):
+        if side in (HOLD, SELL):
             rec.upper_trigger = price_for_threshold(
-                df, benchmark, BUY_THRESHOLD if label == HOLD else SELL_THRESHOLD, "up", step
+                df, benchmark, BUY_THRESHOLD if side == HOLD else SELL_THRESHOLD, "up", step
             )
     return rec

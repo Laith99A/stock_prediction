@@ -6,7 +6,7 @@ from dataclasses import dataclass
 import numpy as np
 import pandas as pd
 
-from .scoring import BUY, HOLD, SELL
+from .scoring import BUY, LABELS, SIDE
 
 
 def signal_quality(scores: pd.DataFrame, close: pd.Series, horizon: int = 21) -> pd.DataFrame:
@@ -14,7 +14,7 @@ def signal_quality(scores: pd.DataFrame, close: pd.Series, horizon: int = 21) ->
     forward = close.shift(-horizon) / close - 1.0
     data = pd.DataFrame({"label": scores["label"], "fwd": forward}).dropna()
     rows = []
-    for label in (BUY, HOLD, SELL):
+    for label in LABELS:
         fwd = data.loc[data["label"] == label, "fwd"]
         rows.append(
             {
@@ -54,11 +54,12 @@ def _max_drawdown(equity: pd.Series) -> float:
 
 
 def strategy_performance(scores: pd.DataFrame, close: pd.Series) -> StrategyResult:
-    """Invested while the signal is BUY (entry/exit at the close), else in cash."""
-    labels = scores["label"]
-    valid = labels.notna()
+    """Invested while the signal is on the buy side (Buy or Strong Buy, entry/exit
+    at the close), else in cash."""
+    sides = scores["side"] if "side" in scores else scores["label"].map(SIDE)
+    valid = sides.notna()
     close = close[valid]
-    in_market = (labels[valid] == BUY).astype(float)
+    in_market = (sides[valid] == BUY).astype(float)
     next_return = close.pct_change().shift(-1).fillna(0.0)
     strategy = (1.0 + next_return * in_market).cumprod().shift(1).fillna(1.0)
     buy_hold = (close / close.iloc[0]).rename("buy_and_hold")

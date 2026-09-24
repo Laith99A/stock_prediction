@@ -5,7 +5,19 @@ import math
 
 import pandas as pd
 
-LABEL_DE = {"BUY": "Kaufen", "HOLD": "Halten", "SELL": "Verkaufen"}
+LABEL_DE = {
+    "STRONG_BUY": "Stark kaufen",
+    "BUY": "Kaufen",
+    "HOLD": "Halten",
+    "SELL": "Verkaufen",
+    "STRONG_SELL": "Stark verkaufen",
+}
+LABEL_ICON = {"STRONG_BUY": "🟢🟢", "BUY": "🟢", "HOLD": "🟡", "SELL": "🔴", "STRONG_SELL": "🔴🔴"}
+
+
+def label_text(label: str) -> str:
+    """Recommendation with traffic-light icon, e.g. "🟢🟢 Stark kaufen"."""
+    return f"{LABEL_ICON[label]} {LABEL_DE[label]}"
 
 _CURRENCY_SYMBOL = {"EUR": "€", "USD": "$", "GBp": "GBp", "CHF": "CHF", "JPY": "¥"}
 
@@ -38,6 +50,12 @@ def fmt_date(value: pd.Timestamp | None) -> str:
     if value is None or pd.isna(value):
         return "–"
     return pd.Timestamp(value).strftime("%d.%m.%Y")
+
+
+def fmt_score(score: float) -> str:
+    """Score without decimals, truncated toward zero so that the shown number always
+    matches the category (e.g. -54.6 is shown as -54 and is "Verkaufen", not -55)."""
+    return f"{int(score):+d}"
 
 
 def fmt_days(trading_days: int) -> str:
