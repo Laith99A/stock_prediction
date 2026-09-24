@@ -50,8 +50,24 @@ _VARS = """
 
 _CSS = """
 .block-container { padding-top: 1.2rem; padding-bottom: 4rem; max-width: 1280px; }
-[data-testid="stSidebar"], [data-testid="stSidebarCollapsedControl"] { display: none; }
-h1, h2, h3, .sec .t, .hero .title, .dname, .sc-name, .wotd .w { font-family: "Space Grotesk", Inter, sans-serif; }
+h1, h2, h3, .sec .t, .hero .title, .dname, .sc-name, .wotd .w, .brand {
+  font-family: "Twemoji Country Flags", "Space Grotesk", Inter, sans-serif; }
+
+/* narrow sidebar with the market navigation */
+section[data-testid="stSidebar"] { width: 236px !important; min-width: 236px !important; max-width: 236px !important; }
+section[data-testid="stSidebar"] .block-container, section[data-testid="stSidebar"] [data-testid="stSidebarContent"] {
+  padding-left: .6rem; padding-right: .6rem; }
+section[data-testid="stSidebar"] [data-testid="stVerticalBlock"] { gap: .3rem; }
+section[data-testid="stSidebar"] [data-testid="stButton"] button { justify-content: flex-start; padding: 6px 12px;
+  min-height: 38px; border-radius: 12px; }
+section[data-testid="stSidebar"] [data-testid="stButton"] button > div { justify-content: flex-start; width: 100%; }
+section[data-testid="stSidebar"] [data-testid="stButton"] button p { text-align: left; font-weight: 600; }
+section[data-testid="stSidebar"] button[kind="primary"] { background: var(--grad); border: none; }
+section[data-testid="stSidebar"] button[kind="tertiary"]:hover { background: var(--soft); }
+.brand { font-size: 1.15rem; font-weight: 700; margin: 2px 0 0; }
+.brand-sub { color: var(--muted); font-size: .8rem; margin-bottom: 12px; }
+.navlabel { color: var(--muted); font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; font-weight: 700;
+  margin: 8px 0 0 4px; padding-bottom: 10px; line-height: 1.2; }
 
 /* pill-shaped navigation tabs */
 [data-testid="stTabs"] [role="tablist"] { gap: 8px; flex-wrap: wrap; border: none; box-shadow: none; padding-bottom: 6px; }
@@ -134,6 +150,17 @@ div[data-testid="stPopover"] button, .stButton button { border-radius: 12px; }
 .sc-bottom { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 .sc-score { font-weight: 800; font-variant-numeric: tabular-nums; }
 .sc-line { font-size: .84rem; color: var(--muted); border-top: 1px solid var(--card-bd); padding-top: 8px; }
+.sc-about { font-size: .82rem; color: var(--muted); line-height: 1.4; min-height: 2.8em; display: -webkit-box;
+  -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+.company .ct { font-size: 1.15rem; font-weight: 800; margin-bottom: 6px; }
+.company .cd { font-size: 1.02rem; line-height: 1.55; margin-bottom: 12px; }
+.facts { display: flex; flex-wrap: wrap; gap: 8px; }
+.fact { display: inline-flex; flex-direction: column; background: var(--soft); border-radius: 12px; padding: 7px 12px;
+  font-size: .9rem; min-width: 110px; }
+.fact .k { color: var(--muted); font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; }
+a.fact { color: var(--text); text-decoration: none; justify-content: center; }
+a.fact:hover { outline: 1px solid var(--accent); }
 .sc-line b { color: var(--text); }
 
 .meter { position: relative; margin: 34px 4px 4px; }
@@ -330,7 +357,7 @@ def sparkline(close: pd.Series, days: int = 63, width: int = 120, height: int = 
 
 
 def stock_tile(rec: Recommendation, check: HalalCheck, flag_emoji: str, price_eur: float | None,
-               change_1d: float | None, sector: str, close: pd.Series) -> str:
+               change_1d: float | None, sector: str, close: pd.Series, description: str = "") -> str:
     """Card for the discovery grid."""
     local = "" if rec.currency == "EUR" else fmt_price(rec.price, rec.currency)
     chg = ""
@@ -342,6 +369,7 @@ def stock_tile(rec: Recommendation, check: HalalCheck, flag_emoji: str, price_eu
     return (f'<div class="card sc">'
             f'<div class="sc-top"><div><div class="sc-name">{flag_emoji} {escape(rec.name)}</div>'
             f'<div class="sc-meta">{meta}</div></div>{halal_badge(check)}</div>'
+            f'<div class="sc-about">{escape(description)}</div>'
             f'<div class="sc-mid"><div><div class="sc-price">{price}</div><div class="sc-sub">{sub}</div></div>'
             f'{sparkline(close)}</div>'
             f'<div class="sc-bottom">{badge(rec.label)}<span class="sc-score">Score {fmt_score(rec.score)}</span></div>'
@@ -365,6 +393,31 @@ def detail_header(rec: Recommendation, change_1d: float | None, check: HalalChec
             f'<div>{badge(rec.label, large=True)}</div>'
             f'<div><div class="dprice">{price}</div>{local}{chg}</div>'
             f'</div>{score_meter(rec.score, rec.label)}</div>')
+
+
+def big_number(value: float | None) -> str:
+    """1.2e12 -> "1,2 Bio." (German short scale)."""
+    if value is None:
+        return "–"
+    for unit, size in (("Bio.", 1e12), ("Mrd.", 1e9), ("Mio.", 1e6)):
+        if abs(value) >= size:
+            return f"{fmt_num(value / size, 1)} {unit}"
+    return fmt_num(value, 0)
+
+
+def company_card(name: str, description: str, german: bool, facts: list[tuple[str, str]],
+                 website: str | None = None) -> str:
+    """"About the company" card: short description plus key facts."""
+    items = "".join(f'<span class="fact"><span class="k">{escape(k)}</span><b>{escape(v)}</b></span>'
+                    for k, v in facts if v)
+    if website and website.startswith(("http://", "https://")):
+        items += f'<a class="fact" href="{escape(website)}" target="_blank" rel="noopener">🌐 Website</a>'
+    note = ""
+    if description and not german:
+        note = '<div class="muted" style="font-size:.8rem;margin-top:8px">Beschreibung von Yahoo Finance (Englisch).</div>'
+    text = escape(description) if description else "Für dieses Unternehmen liegt keine Beschreibung vor."
+    return (f'<div class="card company"><div class="ct">🏢 Über {escape(name)}</div><div class="cd">{text}</div>'
+            f'<div class="facts">{items}</div>{note}</div>')
 
 
 def halal_card(check: HalalCheck) -> str:

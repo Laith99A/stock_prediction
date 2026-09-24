@@ -46,6 +46,12 @@ class Fundamentals:
     target_price: float | None = None
     analyst_rating: str | None = None
     analysts: int | None = None
+    # company profile
+    summary: str | None = None
+    employees: int | None = None
+    city: str | None = None
+    country: str | None = None
+    website: str | None = None
     is_demo: bool = False
 
     @property
@@ -90,6 +96,10 @@ def parse_info(ticker: str, info: dict) -> Fundamentals:
             dividend_yield = 0.0
 
     analysts = _num(info, "numberOfAnalystOpinions")
+    employees = _num(info, "fullTimeEmployees")
+    website = info.get("website") if isinstance(info.get("website"), str) else None
+    if website and not website.startswith(("http://", "https://")):
+        website = "https://" + website
     return Fundamentals(
         ticker=ticker,
         name=info.get("longName") or info.get("shortName"),
@@ -117,6 +127,11 @@ def parse_info(ticker: str, info: dict) -> Fundamentals:
         target_price=_num(info, "targetMeanPrice"),
         analyst_rating=info.get("recommendationKey") if info.get("recommendationKey") not in (None, "none") else None,
         analysts=int(analysts) if analysts is not None else None,
+        summary=info.get("longBusinessSummary") or None,
+        employees=int(employees) if employees is not None else None,
+        city=info.get("city") or None,
+        country=info.get("country") or None,
+        website=website,
     )
 
 

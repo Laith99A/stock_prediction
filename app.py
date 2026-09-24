@@ -15,6 +15,7 @@ from stock_analyzer import charts, ui
 from stock_analyzer.backtest import signal_quality, strategy_performance
 from stock_analyzer.chart_reader import read_chart
 from stock_analyzer.chart_school import LESSONS, SHORT
+from stock_analyzer.companies import COUNTRY_DE, about
 from stock_analyzer.data import SyntheticProvider, YahooProvider, guess_currency, search_yahoo
 from stock_analyzer.formatting import fmt_date, fmt_num, fmt_pct, fmt_price, fmt_score, label_text
 from stock_analyzer.fundamentals import (
@@ -45,7 +46,7 @@ from stock_analyzer.scoring import (
 )
 from stock_analyzer.universes import CATALOG, UNIVERSE_ICON, UNIVERSES, flag, search_catalog
 
-st.set_page_config(page_title="Aktien-Kompass", page_icon="☪️", layout="wide", initial_sidebar_state="collapsed")
+st.set_page_config(page_title="Aktien-Kompass", page_icon="☪️", layout="wide", initial_sidebar_state="expanded")
 
 LIVE = "📡 Live-Kurse (Yahoo Finance)"
 DEMO = "🧪 Demo-Daten (offline)"
@@ -77,6 +78,7 @@ DEFAULTS = {
 }
 KEEP = {"persist_state": "session"}
 st.session_state.setdefault("page_size", 12)
+st.session_state.setdefault("market", DEFAULTS["market"])  # set by the sidebar buttons
 
 
 def state(key: str):
@@ -192,8 +194,42 @@ def open_stock(ticker: str) -> None:
 # --------------------------------------------------------------------------- load the selected market
 
 html(ui.css())
+def select_market(name: str) -> None:
+    st.session_state.market = name
+    st.session_state.page_size = 12
+
+
+def render_sidebar() -> None:
+    """Narrow sidebar: market navigation and settings."""
+    with st.sidebar:
+        html('<div class="brand">☪️ Aktien-Kompass</div><div class="brand-sub">Halal investieren. Einfach verstehen.</div>')
+        html('<div class="navlabel">Markt</div>')
+        for name in [*UNIVERSES, CUSTOM]:
+            count = f" · {len(UNIVERSES[name]['tickers'])}" if name in UNIVERSES else ""
+            st.button(f"{UNIVERSE_ICON.get(name, '⭐')} {name}{count}", key=f"market-{name}", width="stretch",
+                      type="primary" if st.session_state.market == name else "tertiary",
+                      on_click=select_market, args=(name,))
+        if st.session_state.market == CUSTOM:
+            st.text_area("Deine Aktien", key="custom", value=DEFAULTS["custom"], height=110, **KEEP,
+                         help="Namen oder Kürzel mit Komma getrennt, z. B. „Alphabet, SAP, Tencent“ oder GOOGL, "
+                              "SAP.DE, 0700.HK.")
+        html('<div class="navlabel" style="margin-top:14px">Einstellungen</div>')
+        with st.expander("⚙️ Daten & Historie"):
+            st.radio("Datenquelle", [LIVE, DEMO], key="source", **KEEP,
+                     help="Live-Kurse kommen von Yahoo Finance. Demo-Daten sind simulierte Kurse zum Ausprobieren.")
+            st.select_slider("Historie", ["2y", "5y", "10y"], key="period", value=DEFAULTS["period"], **KEEP,
+                             format_func=lambda p: p.replace("y", " Jahre"),
+                             help="Mehr Historie = bessere Schätzung der Signaldauer, aber langsameres Laden.")
+            if st.button("🔄 Daten neu laden", width="stretch"):
+                st.cache_data.clear()
+                _fundamentals_store().clear()
+                st.rerun()
+        st.caption("⚠️ Keine Anlageberatung. Alle Angaben sind Richtwerte.")
+
+
+render_sidebar()
 source = state("source")
-market = state("market")
+market = st.session_state.market
 if market == CUSTOM:
     tickers = resolve_entries(state("custom"), live=source == LIVE)
     benchmark, benchmark_name = "URTH", "MSCI World"
@@ -289,24 +325,8 @@ def on_table_select() -> None:
 
 
 def render_discover() -> None:
-    top = st.columns([5, 1.1], vertical_alignment="center")
-    top[0].segmented_control("Markt", [*UNIVERSES, CUSTOM], key="market", default=DEFAULTS["market"], required=True,
-                             width="stretch", label_visibility="collapsed", **KEEP,
-                             format_func=lambda m: f"{UNIVERSE_ICON.get(m, '⭐')} {m}")
-    with top[1].popover("⚙️ Einstellungen", width="stretch"):
-        st.radio("Datenquelle", [LIVE, DEMO], key="source", **KEEP,
-                 help="Live-Kurse kommen von Yahoo Finance. Demo-Daten sind simulierte Kurse zum Ausprobieren.")
-        st.select_slider("Historie für die Analyse", ["2y", "5y", "10y"], key="period", value=DEFAULTS["period"], **KEEP,
-                         format_func=lambda p: p.replace("y", " Jahre"),
-                         help="Mehr Historie = bessere Schätzung der Signaldauer, aber langsameres Laden.")
-        if st.button("🔄 Daten neu laden", width="stretch"):
-            st.cache_data.clear()
-            _fundamentals_store().clear()
-            st.rerun()
-    if market == CUSTOM:
-        st.text_input("Deine Aktien (Namen oder Kürzel, mit Komma getrennt)", key="custom", value=DEFAULTS["custom"],
-                      **KEEP,
-                      help="Zum Beispiel „Alphabet, SAP, Tencent“ oder Kürzel wie GOOGL, SAP.DE, 0700.HK.")
+    title = "Eigene Liste" if market == CUSTOM else f"{UNIVERSE_ICON.get(market, '')} {market}"
+    html(ui.section(title, f"{len(tickers)} Aktien in dieser Auswahl"))
     if market == "China":
         st.caption("🇨🇳 Chinesische Aktien werden mit den Kursen der Heimatbörse Hongkong analysiert. In Europa "
                    "kannst du sie in Euro über deutsche Börsen handeln (z. B. Tradegate, Frankfurt, Neobroker).")
@@ -318,7 +338,7 @@ def render_discover() -> None:
             st.error(f"Kursdaten konnten nicht geladen werden: {load_error}")
         else:
             st.error("Für diese Auswahl konnten keine Kursdaten geladen werden.")
-        st.info("Tipp: Internetverbindung prüfen oder unter ⚙️ Einstellungen „Demo-Daten (offline)“ wählen.")
+        st.info("Tipp: Internetverbindung prüfen oder links unter ⚙️ „Demo-Daten (offline)“ wählen.")
         return
 
     table = build_table()
@@ -379,8 +399,10 @@ def render_discover() -> None:
             for col, (_, row) in zip(cols, visible.iloc[start:start + 3].iterrows()):
                 rec = by_ticker[row["ticker"]]
                 with col:
+                    description, _ = about(rec.ticker, (funda.get(rec.ticker) or Fundamentals(rec.ticker)).summary,
+                                           max_chars=140)
                     html(ui.stock_tile(rec, checks[rec.ticker], row["flag"], row["price_eur"], row["change"],
-                                       row["sector"], result.histories[rec.ticker]["Close"]))
+                                       row["sector"], result.histories[rec.ticker]["Close"], description))
                     st.button("Analysieren →", key=f"open-{rec.ticker}", on_click=open_stock, args=(rec.ticker,),
                               width="stretch")
         if len(shown) > len(visible):
@@ -490,6 +512,25 @@ def render_stock() -> None:
 
     sub = st.tabs(["🧾 Überblick", "📊 Kennzahlen", "🧭 Chart-Leser", "🔬 Hintergrund"])
     with sub[0]:
+        description, german = about(ticker, f.summary)
+        location = ", ".join(x for x in (f.city, COUNTRY_DE.get(f.country or "", f.country)) if x)
+        sector = " · ".join(x for x in (SECTOR_DE.get(f.sector or "", f.sector), f.industry) if x and not f.is_demo)
+        trading = "Heimatbörse Hongkong · in Europa handelbar" if flag(ticker) == "🇨🇳" and ticker.endswith(".HK") \
+            else ""
+        facts = [
+            ("Branche", sector),
+            ("Sitz", location),
+            ("Mitarbeiter", fmt_num(f.employees, 0) if f.employees else ""),
+            ("Börsenwert", f"{ui.big_number(f.market_cap)} {'GBP' if rec.currency == 'GBp' else rec.currency}"
+             if f.market_cap else ""),
+            ("Kürzel", ticker),
+            ("Handel", trading),
+        ]
+        html(ui.company_card(name, description, german, facts, f.website))
+        if german and f.summary:
+            with st.expander("Ausführliche Beschreibung (Englisch, Yahoo Finance)"):
+                st.write(f.summary)
+
         left, right = st.columns([2, 3], gap="large")
         with left:
             html(ui.section("☪️ Halal-Check"))

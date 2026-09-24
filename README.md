@@ -32,15 +32,19 @@ islamische Indizes messen die Schulden am Börsenwert statt am Eigenkapital – 
 
 ## Was die App kann
 
-- **Märkte:** 🔥 Beliebt, 🇺🇸 USA (137 Aktien), 🇪🇺 Europa (126), 🇨🇳 China (49, in Europa handelbar – analysiert mit
-  den Kursen der Börse Hongkong), 🌍 Alle Märkte (311) oder ⭐ eine eigene Liste mit Namen oder Kürzeln.
-- **🏠 Entdecken:** Aktien als Karten (Preis in €, Mini-Chart der letzten 3 Monate, Halal-Plakette, Empfehlung)
+- **Märkte** (schmale Seitenleiste links): 🔥 Beliebt, 🇺🇸 USA (137 Aktien), 🇪🇺 Europa (126), 🇨🇳 China (49, in
+  Europa handelbar – analysiert mit den Kursen der Börse Hongkong), 🌍 Alle Märkte (311) oder ⭐ eine eigene Liste
+  mit Namen oder Kürzeln. Darunter die Einstellungen (Datenquelle, Historie, Daten neu laden).
+- **🏠 Entdecken:** Aktien als Karten (Preis in €, kurze Beschreibung des Unternehmens, Mini-Chart der letzten
+  3 Monate, Halal-Plakette, Empfehlung)
   oder als Tabelle mit KGV, KBV und Debt-to-Equity. Filter für **Preis pro Aktie** (< 20 €, < 50 €, < 100 €),
   **Halal** (nur halal / + prüfen / alle), **Empfehlung**, **Risiko** (ruhig/mittel/wild nach Schwankung),
   **Branche**, **nur mit Dividende**, dazu Suche und Sortierung. Alle Preise werden in Euro umgerechnet.
 - **🔎 Analyse:** Suche nach Name oder Kürzel („Alphabet“, „Tencent“, „SAP“). Pro Aktie:
-  - **🧾 Überblick:** Halal-Check, Empfehlung im Klartext („Was heißt das für dich?“), wichtigste Zahlen,
-    Kurschart mit Kursziel/Stop-Loss/Datum.
+  - **🧾 Überblick:** 🏢 Über das Unternehmen (was die Firma macht, Branche, Sitz, Mitarbeiter, Börsenwert,
+    Website), Halal-Check, Empfehlung im Klartext („Was heißt das für dich?“), wichtigste Zahlen, Kurschart mit
+    Kursziel/Stop-Loss/Datum. Für alle 311 Aktien der Listen gibt es eine deutsche Kurzbeschreibung, für andere
+    Aktien die (englische) Beschreibung von Yahoo Finance.
   - **📊 Kennzahlen:** KGV, KBV, KUV, PEG, EV/EBITDA, **Debt-to-Equity** (mit Halal-Grenze), Liquidität,
     Eigenkapitalrendite, Margen, Wachstum, Dividende, Beta, Börsenwert – mit Ampel und Faustregel.
   - **🧭 Chart-Leser:** zählt Zeichen für steigende (bullish) und fallende (bearish) Kurse und markiert sie im
@@ -51,7 +55,8 @@ islamische Indizes messen die Schulden am Börsenwert statt am Eigenkapital – 
   investieren** (Riba, Purification, Schuldengrenze …) – und ein 🧠 Quiz. Auf der Startseite gibt es jeden Tag
   einen **Begriff des Tages**.
 - Unterstrichene Wörter und ⓘ-Symbole erklären Begriffe direkt beim Darüberfahren.
-- Dunkles Design ohne Seitenleiste; Einstellungen (Datenquelle, Historie) unter ⚙️.
+- Dunkles Design. Flaggen-Emojis kommen aus einer eigenen Schrift, damit sie auch unter Windows als Flagge
+  statt als „US“/„EU“ erscheinen.
 
 ## Installation
 
@@ -84,7 +89,7 @@ python -m pip install -r requirements.txt
 streamlit run app.py
 ```
 
-Die App öffnet sich im Browser unter http://localhost:8501. Ohne Internet: ⚙️ Einstellungen → „Demo-Daten (offline)“
+Die App öffnet sich im Browser unter http://localhost:8501. Ohne Internet: Seitenleiste → ⚙️ Daten & Historie → „Demo-Daten (offline)“
 (simulierte Kurse und Kennzahlen zum Ausprobieren). Beim ersten Laden eines Marktes holt die App die Kennzahlen
 aller Aktien (für den Halal-Check) – das dauert einmalig bis zu einer Minute.
 
@@ -125,6 +130,7 @@ app.py                         Streamlit-Oberfläche
 stock_analyzer/
   data.py                      Kursdaten (Yahoo Finance, Demo-Daten) und Namenssuche
   universes.py                 Märkte USA/Europa/China, Katalog, Flaggen, Suche
+  companies.py                 Kurzbeschreibungen der Unternehmen (Deutsch)
   halal.py                     Halal-Check (Geschäftsfeld + Debt-to-Equity ≤ 0,33)
   fx.py                        Umrechnung in Euro
   indicators.py                Technische Indikatoren (SMA, RSI, MACD, ATR, …)
