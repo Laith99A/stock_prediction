@@ -19,8 +19,21 @@ Voraussetzung: Python 3.10 oder neuer.
 git clone https://github.com/laith99a/stock_prediction.git
 cd stock_prediction
 python -m venv .venv
-source .venv/bin/activate        # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
+```
+
+Virtuelle Umgebung aktivieren – der Befehl hängt vom Terminal ab:
+
+| Terminal | Befehl |
+|---|---|
+| Windows **Git Bash** | `source .venv/Scripts/activate` |
+| Windows **PowerShell** | `.venv\Scripts\Activate.ps1` |
+| Windows **Eingabeaufforderung (cmd)** | `.venv\Scripts\activate.bat` |
+| macOS / Linux | `source .venv/bin/activate` |
+
+Danach steht `(.venv)` vor der Eingabezeile. Dann die Pakete installieren:
+
+```bash
+python -m pip install -r requirements.txt
 ```
 
 ## Starten
@@ -85,7 +98,7 @@ tests/                         Tests (pytest)
 ## Entwicklung
 
 ```bash
-pip install -r requirements-dev.txt
+python -m pip install -r requirements-dev.txt
 pytest
 ruff check .
 ```
