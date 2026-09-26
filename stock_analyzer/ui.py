@@ -37,6 +37,7 @@ _VARS = """
   --card-bg:#111827; --card-bd:#1f2a3f; --muted:#93a0b8; --soft:#172033; --text:#e8ecf4;
   --shadow:0 1px 0 rgba(255,255,255,.03) inset, 0 8px 24px rgba(0,0,0,.25);
   --accent:#8b7bff; --accent2:#22d3ee; --grad:linear-gradient(120deg,#7c5cff 0%,#22d3ee 100%);
+  --on-grad:#04060c;
   --tip-bg:#f1f5f9; --tip-fg:#0f172a; --up:#34d399; --down:#f87171;
   --sb-bg:#12924a; --sb-fg:#ffffff; --sb-bd:#12924a;
   --b-bg:rgba(34,197,94,.14); --b-fg:#6ee7a1; --b-bd:rgba(34,197,94,.45);
@@ -63,6 +64,8 @@ section[data-testid="stSidebar"] [data-testid="stButton"] button { justify-conte
 section[data-testid="stSidebar"] [data-testid="stButton"] button > div { justify-content: flex-start; width: 100%; }
 section[data-testid="stSidebar"] [data-testid="stButton"] button p { text-align: left; font-weight: 600; }
 section[data-testid="stSidebar"] button[kind="primary"] { background: var(--grad); border: none; }
+/* white text fails 4.5:1 contrast against the cyan end of --grad; dark text passes across its whole range */
+section[data-testid="stSidebar"] button[kind="primary"] p { color: var(--on-grad); }
 section[data-testid="stSidebar"] button[kind="tertiary"]:hover { background: var(--soft); }
 .brand { font-size: 1.15rem; font-weight: 700; margin: 2px 0 0; }
 .brand-sub { color: var(--muted); font-size: .8rem; margin-bottom: 12px; }
@@ -78,7 +81,7 @@ section[data-testid="stSidebar"] button[kind="tertiary"]:hover { background: var
 [data-testid="stTabs"] [data-testid="stTab"] > div:not([data-testid]) { display: none; }  /* underline indicator */
 [data-testid="stTabs"] [data-testid="stTab"] p { font-size: .98rem; font-weight: 600; }
 [data-testid="stTabs"] [data-testid="stTab"][aria-selected="true"] { background: var(--grad); border-color: transparent; }
-[data-testid="stTabs"] [data-testid="stTab"][aria-selected="true"] p { color: #fff; }
+[data-testid="stTabs"] [data-testid="stTab"][aria-selected="true"] p { color: var(--on-grad); }
 div[data-testid="stMetric"] { background: var(--card-bg); box-shadow: var(--shadow); }
 div[data-testid="stMetricValue"] { font-weight: 700; }
 div[data-testid="stPopover"] button, .stButton button { border-radius: 12px; }
@@ -119,7 +122,8 @@ div[data-testid="stPopover"] button, .stButton button { border-radius: 12px; }
 .hb.pruefen { background: var(--h-bg); color: var(--h-fg); border-color: var(--h-bd); }
 .hb.lg { font-size: .95rem; padding: 5px 14px; }
 
-.tt { border-bottom: 1px dotted currentColor; cursor: help; position: relative; outline: none; }
+.tt { border-bottom: 1px dotted currentColor; cursor: help; position: relative; border-radius: 3px; }
+.tt:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 .tt .tip { visibility: hidden; opacity: 0; position: absolute; left: 50%; bottom: calc(100% + 8px);
   transform: translateX(-50%); width: max-content; max-width: 280px; background: var(--tip-bg); color: var(--tip-fg);
   padding: 8px 11px; border-radius: 9px; font-size: .8rem; line-height: 1.4; font-weight: 400; z-index: 1000;
@@ -160,7 +164,7 @@ div[data-testid="stPopover"] button, .stButton button { border-radius: 12px; }
   font-size: .9rem; min-width: 110px; }
 .fact .k { color: var(--muted); font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; }
 a.fact { color: var(--text); text-decoration: none; justify-content: center; }
-a.fact:hover { outline: 1px solid var(--accent); }
+a.fact:hover, a.fact:focus-visible { outline: 1px solid var(--accent); }
 .sc-line b { color: var(--text); }
 
 .meter { position: relative; margin: 34px 4px 4px; }
@@ -216,7 +220,7 @@ a.fact:hover { outline: 1px solid var(--accent); }
 
 .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
 .step .n { display: inline-flex; width: 28px; height: 28px; border-radius: 50%; align-items: center; justify-content: center;
-  background: var(--grad); color: #fff; font-weight: 800; margin-bottom: 8px; }
+  background: var(--grad); color: var(--on-grad); font-weight: 800; margin-bottom: 8px; }
 .step .h { font-weight: 750; margin-bottom: 4px; }
 
 .ggrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; }
