@@ -70,16 +70,17 @@ section[data-testid="stSidebar"] button[kind="tertiary"]:hover { background: var
 .navlabel { color: var(--muted); font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; font-weight: 700;
   margin: 8px 0 0 4px; padding-bottom: 10px; line-height: 1.2; }
 
-/* pill-shaped navigation tabs */
-[data-testid="stTabs"] [role="tablist"] { gap: 8px; flex-wrap: wrap; border: none; box-shadow: none; padding-bottom: 6px; }
+/* plain underline navigation tabs, sitting on one hairline */
+[data-testid="stTabs"] [role="tablist"] { gap: 28px; flex-wrap: wrap; border: none; border-bottom: 1px solid var(--card-bd);
+  box-shadow: none; padding-bottom: 0; }
 [data-testid="stTabs"] [role="tablist"]::after, [data-testid="stTabs"] [role="tablist"]::before { display: none; }
-[data-testid="stTabs"] [data-testid="stTab"] { background: var(--card-bg); border: 1px solid var(--card-bd); border-radius: 999px;
-  padding: 7px 18px; height: auto; transition: border-color .15s; }
-[data-testid="stTabs"] [data-testid="stTab"]:hover { border-color: var(--accent); }
+[data-testid="stTabs"] [data-testid="stTab"] { background: transparent; border: none; border-bottom: 2px solid transparent;
+  border-radius: 0; padding: 10px 2px; height: auto; opacity: .65; transition: opacity .15s, border-color .15s; }
+[data-testid="stTabs"] [data-testid="stTab"]:hover { opacity: 1; border-color: var(--card-bd); }
 [data-testid="stTabs"] [data-testid="stTab"] > div:not([data-testid]) { display: none; }  /* underline indicator */
 [data-testid="stTabs"] [data-testid="stTab"] p { font-size: .98rem; font-weight: 600; }
-[data-testid="stTabs"] [data-testid="stTab"][aria-selected="true"] { background: var(--accent); border-color: transparent; }
-[data-testid="stTabs"] [data-testid="stTab"][aria-selected="true"] p { color: var(--on-accent); }
+[data-testid="stTabs"] [data-testid="stTab"][aria-selected="true"] { border-color: var(--accent); opacity: 1; }
+[data-testid="stTabs"] [data-testid="stTab"][aria-selected="true"] p { color: var(--text); }
 div[data-testid="stMetric"] { background: var(--card-bg); box-shadow: var(--shadow); }
 div[data-testid="stMetricValue"] { font-weight: 700; font-variant-numeric: tabular-nums; }
 div[data-testid="stPopover"] button, .stButton button { border-radius: 12px; transition: transform .1s; }
@@ -91,18 +92,19 @@ section[data-testid="stSidebar"] [data-testid="stButton"] button:active { transf
   section[data-testid="stSidebar"] [data-testid="stButton"] button:active { transform: none; }
 }
 
-.hero { position: relative; overflow: hidden; border-radius: 24px; padding: 26px 30px; margin-bottom: 16px;
-  color: var(--text); background: radial-gradient(circle at 12% 0%, var(--accent-soft), transparent 55%), var(--card-bg);
-  border: 1px solid var(--card-bd); box-shadow: var(--shadow);
-  display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; flex-wrap: wrap; }
+/* editorial masthead: no card box, no glow, sits directly on the page */
+.hero { padding: 4px 0 26px; margin-bottom: 22px; border-bottom: 1px solid var(--card-bd); }
 .hero .kicker { font-size: .78rem; letter-spacing: .16em; text-transform: uppercase; font-weight: 700; color: var(--accent); }
-.hero .title { font-size: 2.2rem; font-weight: 700; letter-spacing: -.01em; line-height: 1.1; margin: 6px 0 8px;
+.hero .title { font-size: 2.6rem; font-weight: 700; letter-spacing: -.02em; line-height: 1.05; margin: 10px 0 12px;
   text-wrap: balance; }
 .hero .title span { color: var(--accent); }
-.hero .sub { color: var(--muted); max-width: 640px; font-size: 1rem; line-height: 1.45; text-wrap: pretty; }
-.hero .chips { display: flex; gap: 8px; flex-wrap: wrap; position: relative; }
-.chip { background: var(--soft); border: 1px solid var(--card-bd); border-radius: 999px; color: var(--muted);
-  padding: 5px 12px; font-size: .82rem; white-space: nowrap; }
+.hero .sub { color: var(--muted); max-width: 680px; font-size: 1.05rem; line-height: 1.5; margin-bottom: 14px;
+  text-wrap: pretty; }
+.hero .chips { display: flex; gap: 20px; flex-wrap: wrap; font-size: .84rem; color: var(--muted); }
+.hero .chips span { position: relative; padding-left: 16px; }
+.hero .chips span:first-child { padding-left: 0; }
+.hero .chips span:not(:first-child)::before { content: ""; position: absolute; left: 5px; top: 50%;
+  transform: translateY(-50%); width: 4px; height: 4px; border-radius: 50%; background: var(--card-bd); }
 
 .card { background: var(--card-bg); border: 1px solid var(--card-bd); border-radius: 18px; padding: 18px 20px;
   box-shadow: var(--shadow); }
@@ -137,11 +139,16 @@ section[data-testid="stSidebar"] [data-testid="stButton"] button:active { transf
   font-size: .68rem; font-weight: 700; border: 1px solid currentColor; opacity: .6; margin-left: 4px;
   border-bottom-style: solid; vertical-align: 1px; }
 
-.pulse { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 6px; }
-.pulse .card { padding: 14px 16px; }
-.pulse .k { font-size: .8rem; color: var(--muted); margin-bottom: 4px; }
-.pulse .v { font-size: 1.25rem; font-weight: 750; }
-.pulse .s { font-size: .82rem; color: var(--muted); margin-top: 2px; }
+/* asymmetric stat row: one featured number instead of N equal tiles */
+.pulse { display: grid; grid-template-columns: 1.1fr 1.4fr; gap: 14px; margin-bottom: 6px; align-items: stretch; }
+.pulse .stat-secondary { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+@media (max-width: 900px) { .pulse { grid-template-columns: 1fr; } }
+.stat { padding: 16px 18px; display: flex; flex-direction: column; justify-content: center; }
+.stat.featured { border-left: 4px solid var(--accent); }
+.stat.featured .v { font-size: 2.5rem; }
+.stat .k { font-size: .8rem; color: var(--muted); margin-bottom: 4px; }
+.stat .v { font-size: 1.25rem; font-weight: 750; font-variant-numeric: tabular-nums; }
+.stat .s { font-size: .82rem; color: var(--muted); margin-top: 2px; }
 .wotd { border-left: 4px solid var(--accent); }
 .wotd .w { font-size: 1.1rem; font-weight: 700; }
 
@@ -298,10 +305,13 @@ def badge(label: str, large: bool = False) -> str:
 
 
 def hero(kicker: str, title_html: str, subtitle: str, chips: list[str]) -> str:
-    """Header banner. `title_html` is static markup; wrap a word in <span> to highlight it."""
-    chip_html = "".join(f'<span class="chip">{escape(c)}</span>' for c in chips)
-    return (f'<div class="hero"><div><div class="kicker">{escape(kicker)}</div><div class="title">{title_html}</div>'
-            f'<div class="sub">{subtitle}</div></div><div class="chips">{chip_html}</div></div>')
+    """Page masthead: eyebrow, headline, dek and a plain meta line (not boxed, no pills).
+
+    `title_html` is static markup; wrap a word in <span> to highlight it.
+    """
+    meta_html = "".join(f"<span>{escape(c)}</span>" for c in chips)
+    return (f'<div class="hero"><div class="kicker">{escape(kicker)}</div><div class="title">{title_html}</div>'
+            f'<div class="sub">{subtitle}</div><div class="chips">{meta_html}</div></div>')
 
 
 def section(title: str, subtitle: str = "") -> str:
@@ -441,11 +451,17 @@ def halal_card(check: HalalCheck) -> str:
             f'{term("Schuldengrenze 33 %", "halal_schulden")}. Ersetzt keine vollständige Shariah-Prüfung.</div></div>')
 
 
-def pulse(items: list[tuple[str, str, str]], extra: str = "") -> str:
-    """Row of small status cards (label, value, caption); `extra` is appended as another card."""
-    cards = "".join(f'<div class="card"><div class="k">{k}</div><div class="v">{v}</div><div class="s">{sub}</div></div>'
-                    for k, v, sub in items)
-    return f'<div class="pulse">{cards}{extra}</div>'
+def _stat(item: tuple[str, str, str], featured: bool = False) -> str:
+    k, v, sub = item
+    cls = " featured" if featured else ""
+    return f'<div class="card stat{cls}"><div class="k">{k}</div><div class="v">{v}</div><div class="s">{sub}</div></div>'
+
+
+def pulse(primary: tuple[str, str, str], secondary: list[tuple[str, str, str]], extra: str = "") -> str:
+    """Asymmetric stat row: one featured number plus compact secondary stats (`extra` joins the latter)."""
+    sec_html = "".join(_stat(item) for item in secondary)
+    return (f'<div class="pulse">{_stat(primary, featured=True)}'
+            f'<div class="stat-secondary">{sec_html}{extra}</div></div>')
 
 
 def word_card(key: str) -> str:

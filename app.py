@@ -344,17 +344,15 @@ def render_discover() -> None:
     table = build_table()
     n_halal = int((table["halal"] == HALAL).sum())
     n_buy = int(((table["halal"] == HALAL) & (table["side"] == BUY)).sum())
-    items = []
+    secondary = []
     if result.regime is not None:
         regime = result.regime
-        items.append((f"{ui.term('Markttrend', 'marktumfeld')} · {regime.name}", regime.short_label,
-                      f"{fmt_pct(regime.perf_1m)} im letzten Monat"))
-    items += [
-        (f"☪️ {ui.term('Halal-konform', 'halal_investieren')}", f"{n_halal} von {len(table)}",
-         "bestehen Geschäftsfeld- und Schulden-Check"),
-        ("🟢 Halal + Kaufsignal", str(n_buy), "Aktien mit „Kaufen“ oder „Stark kaufen“"),
-    ]
-    html(ui.pulse(items, extra=ui.word_card(word_of_the_day())))
+        secondary.append((f"{ui.term('Markttrend', 'marktumfeld')} · {regime.name}", regime.short_label,
+                          f"{fmt_pct(regime.perf_1m)} im letzten Monat"))
+    secondary.append((f"☪️ {ui.term('Halal-konform', 'halal_investieren')}", f"{n_halal} von {len(table)}",
+                      "bestehen Geschäftsfeld- und Schulden-Check"))
+    primary = ("🟢 Halal + Kaufsignal", str(n_buy), "Aktien mit „Kaufen“ oder „Stark kaufen“ in dieser Auswahl")
+    html(ui.pulse(primary, secondary, extra=ui.word_card(word_of_the_day())))
 
     # ---- filter bar
     f1, f2, f3 = st.columns([2.2, 1.6, 1.6])
