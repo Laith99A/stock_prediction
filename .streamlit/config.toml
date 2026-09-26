@@ -8,12 +8,12 @@ toolbarMode = "minimal"
 
 [theme]
 base = "dark"
-primaryColor = "#8b7bff"
-backgroundColor = "#0a0e17"
-secondaryBackgroundColor = "#151d2e"
-textColor = "#e8ecf4"
-borderColor = "#1f2a3f"
-dataframeHeaderBackgroundColor = "#151d2e"
+primaryColor = "#22c98f"
+backgroundColor = "#0c0d0e"
+secondaryBackgroundColor = "#17181a"
+textColor = "#eef0f1"
+borderColor = "#26282b"
+dataframeHeaderBackgroundColor = "#17181a"
 # "Twemoji Country Flags" only covers flag emoji characters, so Windows shows 🇺🇸 🇩🇪 🇨🇳 as flags, not letters.
 font = "Twemoji Country Flags, Inter:https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap, sans-serif"
 headingFont = "Twemoji Country Flags, Space Grotesk:https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap, sans-serif"
@@ -27,4 +27,4 @@ url = "https://cdn.jsdelivr.net/npm/country-flag-emoji-polyfill@0.1/dist/Twemoji
 unicodeRange = "U+1F1E6-1F1FF, U+1F3F4, U+E0062-E0063, U+E0065, U+E0067, U+E006C, U+E006E, U+E0073-E0074, U+E0077, U+E007F"
 
 [theme.sidebar]
-backgroundColor = "#0d1320"
+backgroundColor = "#101112"

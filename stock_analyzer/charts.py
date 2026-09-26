@@ -53,11 +53,11 @@ PALETTES = {
         "negative": "#e66767",
         "good": "#0ca30c",
         "critical": "#d03b3b",
-        "muted": "#898781",
-        "grid": "#2c2c2a",
-        "baseline": "#383835",
-        "text": "#c3c2b7",
-        "surface": "#1a1a19",
+        "muted": "#999da0",
+        "grid": "#26282b",
+        "baseline": "#333537",
+        "text": "#d7d9da",
+        "surface": "#17181a",
     },
 }
 
