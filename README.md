@@ -1,6 +1,6 @@
-# ☪️ Aktien-Kompass – halal investieren, einfach verstehen
+# ☪️ Aktien-Kompass – investieren, einfach verstehen
 
-Eine App für junge Einsteiger (18–25), die **halal-konforme Aktien** aus den **USA, Europa und China** findet,
+Eine App für junge Einsteiger (18–25), die aus den **USA, Europa und China** findet,
 jede Aktie in eine von fünf Stufen einordnet und dabei **jeden Begriff erklärt** – damit du die Sprache der
 Investoren lernst.
 
@@ -14,21 +14,6 @@ Investoren lernst.
 
 > ⚠️ **Keine Anlageberatung.** Die Empfehlung beruht auf der technischen Analyse des Kursverlaufs, der Halal-Check
 > ist eine vereinfachte Prüfung. Alle Kursziele und Termine sind Richtwerte.
-
-## ☪️ Halal-Check
-
-Eine Aktie gilt als **✅ halal**, wenn beide Kriterien erfüllt sind:
-
-1. **Geschäftsfeld:** kein Alkohol, Tabak, Waffen/Rüstung, Glücksspiel/Wetten, keine Banken und Kreditgeschäfte
-   (Zinsen), keine konventionellen Versicherungen, kein Schweinefleisch und keine Erwachsenenunterhaltung.
-   Grenzfälle, die Gelehrte unterschiedlich bewerten (Musik-/Filmunterhaltung, Krypto, kleine Rüstungsanteile,
-   Hotels mit Alkohol), stehen auf **❔ Prüfen**. Die Aktien der App-Listen sind von Hand eingeordnet, andere
-   Aktien über die Branche von Yahoo Finance.
-2. **Schulden:** **Debt-to-Equity ≤ 0,33** (Schulden höchstens 33 % des Eigenkapitals). Fehlen die Daten, steht
-   die Aktie auf **❔ Prüfen**.
-
-Hinweise: Vollständige Shariah-Screenings prüfen zusätzlich z. B. Zinseinnahmen und Bargeldbestände. Viele
-islamische Indizes messen die Schulden am Börsenwert statt am Eigenkapital – die Regel der App ist strenger.
 
 ## Was die App kann
 
@@ -122,6 +107,21 @@ python -m stock_analyzer --demo                   # ohne Internet
    Yahoo liefert Debt-to-Equity in Prozent (150 = 1,5), die App rechnet das in das übliche Verhältnis um.
 
 Details stehen auch im Tab „⚙️ So funktioniert's“ der App.
+
+## ☪️ Halal-Check
+
+Eine Aktie gilt als **✅ halal**, wenn beide Kriterien erfüllt sind:
+
+1. **Geschäftsfeld:** kein Alkohol, Tabak, Waffen/Rüstung, Glücksspiel/Wetten, keine Banken und Kreditgeschäfte
+   (Zinsen), keine konventionellen Versicherungen, kein Schweinefleisch und keine Erwachsenenunterhaltung.
+   Grenzfälle, die Gelehrte unterschiedlich bewerten (Musik-/Filmunterhaltung, Krypto, kleine Rüstungsanteile,
+   Hotels mit Alkohol), stehen auf **❔ Prüfen**. Die Aktien der App-Listen sind von Hand eingeordnet, andere
+   Aktien über die Branche von Yahoo Finance.
+2. **Schulden:** **Debt-to-Equity ≤ 0,33** (Schulden höchstens 33 % des Eigenkapitals). Fehlen die Daten, steht
+   die Aktie auf **❔ Prüfen**.
+
+Hinweise: Vollständige Shariah-Screenings prüfen zusätzlich z. B. Zinseinnahmen und Bargeldbestände. Viele
+islamische Indizes messen die Schulden am Börsenwert statt am Eigenkapital.
 
 ## Projektstruktur
 
